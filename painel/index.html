@@ -675,11 +675,17 @@
   /* ===================================================================
      GRÁFICOS
      =================================================================== */
-  .chart-card h3 { margin: 0 0 2px; font-size: 15px; letter-spacing: -.01em; }
+  .chart-card h3 { margin: 0 0 2px; font-size: 15px; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 10px; }
   .chart-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 12px; }
   .legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
   .hbar-row { display: grid; grid-template-columns: minmax(110px, 160px) 1fr auto; gap: 12px; align-items: center; padding: 7px 0; }
+  /* Entrada é petróleo, saída é terracota. A mesma dupla do resto do
+     sistema, pra ninguém precisar ler o título pra saber de que lado é. */
+  .hbar-row.ent .hbar-track i { background: var(--chart-2); }
+  .hbar-row.sai .hbar-track i { background: var(--chart-1); }
+  .chart-card h3 .push { font-size: 14px; font-weight: 800; }
+  @media (max-width: 780px) { #fin-graf { grid-template-columns: 1fr; } }
   .hbar-nome { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .hbar-track { height: 14px; background: var(--card-2); border-radius: 99px; overflow: hidden; }
   .hbar-track i { display: block; height: 100%; background: var(--chart-1); border-radius: 99px; min-width: 3px;
@@ -5158,11 +5164,28 @@ function telaFinanceiro() {
   const oEsc = filtroFinObra !== 'todas' && filtroFinObra !== 'geral' ? obra(filtroFinObra) : null;
   const escopoSub = oEsc ? esc(oEsc.nome) : (filtroFinObra === 'geral' ? 'fora das obras' : 'todas as obras');
 
-  const porCat = {};
-  doMes.filter(l => l.tipo === 'saída')
-    .forEach(l => { porCat[l.categoria] = (porCat[l.categoria] || 0) + l.valor; });
-  const cats = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
-  const maxCat = Math.max(...cats.map(c => c[1]), 1);
+  /* Os dois lados do mês, cada um por categoria. As barras dos dois
+     quadros dividem a mesma régua: assim uma entrada de 30 mil aparece
+     visivelmente maior que uma saída de 9 mil, em vez de as duas
+     encherem o próprio quadro e parecerem iguais. */
+  const porCategoria = tipo => {
+    const acc = {};
+    doMes.filter(l => l.tipo === tipo).forEach(l => { acc[l.categoria] = (acc[l.categoria] || 0) + l.valor; });
+    return Object.entries(acc).sort((a, b) => b[1] - a[1]);
+  };
+  const catsEnt = porCategoria('entrada');
+  const cats = porCategoria('saída');
+  const maxCat = Math.max(...catsEnt.map(c => c[1]), ...cats.map(c => c[1]), 1);
+  const quadro = (titulo, total, linhas, lado, vazio) => `
+    <div class="card chart-card">
+      <h3>${titulo}<span class="push money ${lado === 'ent' ? 'in' : 'out'}">${moeda(total)}</span></h3>
+      ${linhas.length ? linhas.map(([c, v]) => `
+        <div class="hbar-row ${lado}">
+          <span class="hbar-nome">${esc(rotCat(c))}</span>
+          <span class="hbar-track"><i style="width:${Math.round(100 * v / maxCat)}%" data-larg="${Math.round(100 * v / maxCat)}"></i></span>
+          <span class="hbar-val money">${moeda(v)}</span>
+        </div>`).join('') : `<div class="empty">${vazio}</div>`}
+    </div>`;
 
   /* Guarda o que estava na tela antes pra o número subir de lá até aqui */
   const ant = finAnt;
@@ -5184,8 +5207,8 @@ function telaFinanceiro() {
       <span class="push linha-ed">
         <label class="ord"><span class="ord-lab">Obra</span>
           <select id="filtro-fin-obra" style="max-width:236px" aria-label="Escopo do financeiro: filtrar por obra">
-            <option value="todas" ${filtroFinObra === 'todas' ? 'selected' : ''}>Todas as obras</option>
-            <option value="geral" ${filtroFinObra === 'geral' ? 'selected' : ''}>Só o geral (sem obra)</option>
+            <option value="todas" ${filtroFinObra === 'todas' ? 'selected' : ''}>Todas</option>
+            <option value="geral" ${filtroFinObra === 'geral' ? 'selected' : ''}>Sem obra</option>
             ${state.obras.map(o => '<option value="' + o.id + '" ' + (filtroFinObra === o.id ? 'selected' : '') + '>' + esc(o.nome) + '</option>').join('')}
           </select>
         </label>
@@ -5197,15 +5220,12 @@ function telaFinanceiro() {
       <div class="tile ${ent - sai >= 0 ? 't-petrol' : 't-crit'}"><div class="k">Saldo</div><div class="v ${ent - sai >= 0 ? 'pos' : 'neg'}" data-conta="${ent - sai}"${de('saldo')}>${moeda(ent - sai)}</div><div class="s">${escopoSub}</div></div>
     </div>
 
-    <div class="eyebrow">Para onde o dinheiro foi em ${tituloMes.toLowerCase()}${oEsc ? ' · ' + escopoSub : ''}</div>
-    <div class="card" id="fin-graf">
-      ${cats.length ? cats.map(([c, v]) => `
-        <div class="hbar-row">
-          <span class="hbar-nome">${esc(rotCat(c))}</span>
-          <span class="hbar-track"><i style="width:${Math.round(100 * v / maxCat)}%" data-larg="${Math.round(100 * v / maxCat)}"></i></span>
-          <span class="hbar-val money">${moeda(v)}</span>
-        </div>`).join('')
-      : `<div class="empty">Nenhuma saída ${oEsc ? 'nesta obra' : filtroFinObra === 'geral' ? 'fora das obras' : ''} em ${tituloMes.toLowerCase()}.</div>`}
+    <div class="eyebrow">O dinheiro de ${tituloMes.toLowerCase()}${oEsc ? ' · ' + escopoSub : ''}</div>
+    <div class="grid-2" id="fin-graf">
+      ${quadro('De onde veio', ent, catsEnt, 'ent',
+        'Nada entrou ' + (oEsc ? 'nesta obra' : filtroFinObra === 'geral' ? 'fora das obras' : '') + ' neste mês.')}
+      ${quadro('Para onde foi', sai, cats, 'sai',
+        'Nada saiu ' + (oEsc ? 'nesta obra' : filtroFinObra === 'geral' ? 'fora das obras' : '') + ' neste mês.')}
     </div>
 
     <div class="eyebrow">Movimentações</div>
@@ -5213,8 +5233,8 @@ function telaFinanceiro() {
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <select id="filtro-fin" aria-label="Filtrar movimentações" style="border:1px solid var(--line);background:var(--card-2);border-radius:9px;padding:7px 11px">
           <option value="todos" ${filtroFin === 'todos' ? 'selected' : ''}>Tudo</option>
-          <option value="entrada" ${filtroFin === 'entrada' ? 'selected' : ''}>Só entradas</option>
-          <option value="saída" ${filtroFin === 'saída' ? 'selected' : ''}>Só saídas</option>
+          <option value="entrada" ${filtroFin === 'entrada' ? 'selected' : ''}>Entradas</option>
+          <option value="saída" ${filtroFin === 'saída' ? 'selected' : ''}>Saídas</option>
         </select>
         <span class="push linha-ed">${selOrdem('lanc')}<button class="btn small primary" data-novo="lancamento">+ Novo lançamento</button></span>
       </div>
@@ -5289,65 +5309,65 @@ function ganhoDia(p) { return p.salario > 0 ? p.salario / 2 / 10 : (p.diaria || 
 
 const ORDENADORES = {
   equipe: {
-    nome:      { rot:'Nome (A a Z)',     cmp:(a, b) => cmpTxt(a.nome, b.nome) },
-    nomeZ:     { rot:'Nome (Z a A)',     cmp:(a, b) => cmpTxt(b.nome, a.nome) },
+    nome:      { rot:'A a Z',     cmp:(a, b) => cmpTxt(a.nome, b.nome) },
+    nomeZ:     { rot:'Z a A',     cmp:(a, b) => cmpTxt(b.nome, a.nome) },
     papel:     { rot:'Função',           cmp:(a, b) => cmpTxt(a.papel, b.papel) || cmpTxt(a.nome, b.nome) },
-    maisCaro:  { rot:'Diária: maior',    cmp:(a, b) => ganhoDia(b) - ganhoDia(a) || cmpTxt(a.nome, b.nome) },
-    maisBarato:{ rot:'Diária: menor',    cmp:(a, b) => ganhoDia(a) - ganhoDia(b) || cmpTxt(a.nome, b.nome) },
+    maisCaro:  { rot:'Maior',    cmp:(a, b) => ganhoDia(b) - ganhoDia(a) || cmpTxt(a.nome, b.nome) },
+    maisBarato:{ rot:'Menor',    cmp:(a, b) => ganhoDia(a) - ganhoDia(b) || cmpTxt(a.nome, b.nome) },
     obra:      { rot:'Obra',             cmp:(a, b) => cmpTxt(obraNome(a.obraId), obraNome(b.obraId)) || cmpTxt(a.nome, b.nome) }
   },
   fornec: {
-    nome:      { rot:'Nome (A a Z)',     cmp:(a, b) => cmpTxt(a.nome, b.nome) },
-    nomeZ:     { rot:'Nome (Z a A)',     cmp:(a, b) => cmpTxt(b.nome, a.nome) },
-    devendo:   { rot:'Mais em aberto',   cmp:(a, b) => abertoForn(b) - abertoForn(a) || cmpTxt(a.nome, b.nome) }
+    nome:      { rot:'A a Z',     cmp:(a, b) => cmpTxt(a.nome, b.nome) },
+    nomeZ:     { rot:'Z a A',     cmp:(a, b) => cmpTxt(b.nome, a.nome) },
+    devendo:   { rot:'Devendo',   cmp:(a, b) => abertoForn(b) - abertoForn(a) || cmpTxt(a.nome, b.nome) }
   },
   obras: {
-    nome:      { rot:'Nome (A a Z)',     cmp:(a, b) => cmpTxt(a.nome, b.nome) },
-    nomeZ:     { rot:'Nome (Z a A)',     cmp:(a, b) => cmpTxt(b.nome, a.nome) },
-    maior:     { rot:'Contrato: maior',  cmp:(a, b) => (b.contrato || 0) - (a.contrato || 0) || cmpTxt(a.nome, b.nome) },
-    menor:     { rot:'Contrato: menor',  cmp:(a, b) => (a.contrato || 0) - (b.contrato || 0) || cmpTxt(a.nome, b.nome) },
-    exec:      { rot:'Mais construída',  cmp:(a, b) => (b.progresso || 0) - (a.progresso || 0) || cmpTxt(a.nome, b.nome) },
-    entrega:   { rot:'Entrega mais perto', cmp:(a, b) => cmpTxt(a.entrega || '9999', b.entrega || '9999') || cmpTxt(a.nome, b.nome) }
+    nome:      { rot:'A a Z',     cmp:(a, b) => cmpTxt(a.nome, b.nome) },
+    nomeZ:     { rot:'Z a A',     cmp:(a, b) => cmpTxt(b.nome, a.nome) },
+    maior:     { rot:'Maior',  cmp:(a, b) => (b.contrato || 0) - (a.contrato || 0) || cmpTxt(a.nome, b.nome) },
+    menor:     { rot:'Menor',  cmp:(a, b) => (a.contrato || 0) - (b.contrato || 0) || cmpTxt(a.nome, b.nome) },
+    exec:      { rot:'Construída',  cmp:(a, b) => (b.progresso || 0) - (a.progresso || 0) || cmpTxt(a.nome, b.nome) },
+    entrega:   { rot:'Entrega', cmp:(a, b) => cmpTxt(a.entrega || '9999', b.entrega || '9999') || cmpTxt(a.nome, b.nome) }
   },
   clientes: {
-    nome:      { rot:'Nome (A a Z)',     cmp:(a, b) => cmpTxt(a.nome, b.nome) },
-    nomeZ:     { rot:'Nome (Z a A)',     cmp:(a, b) => cmpTxt(b.nome, a.nome) },
-    quente:    { rot:'Mais quentes',     cmp:(a, b) => (TEMP_ORD[a.temperatura] ?? 3) - (TEMP_ORD[b.temperatura] ?? 3) || cmpTxt(a.nome, b.nome) },
+    nome:      { rot:'A a Z',     cmp:(a, b) => cmpTxt(a.nome, b.nome) },
+    nomeZ:     { rot:'Z a A',     cmp:(a, b) => cmpTxt(b.nome, a.nome) },
+    quente:    { rot:'Quentes',     cmp:(a, b) => (TEMP_ORD[a.temperatura] ?? 3) - (TEMP_ORD[b.temperatura] ?? 3) || cmpTxt(a.nome, b.nome) },
     origem:    { rot:'Origem',           cmp:(a, b) => cmpTxt(a.origem, b.origem) || cmpTxt(a.nome, b.nome) }
   },
   folha: {
-    nome:      { rot:'Nome (A a Z)',     cmp:(a, b) => cmpTxt(nomeLinha(a), nomeLinha(b)) },
-    nomeZ:     { rot:'Nome (Z a A)',     cmp:(a, b) => cmpTxt(nomeLinha(b), nomeLinha(a)) },
-    maior:     { rot:'Valor: maior',     cmp:(a, b) => b.valor - a.valor || cmpTxt(nomeLinha(a), nomeLinha(b)) },
-    menor:     { rot:'Valor: menor',     cmp:(a, b) => a.valor - b.valor || cmpTxt(nomeLinha(a), nomeLinha(b)) },
-    aberto:    { rot:'Em aberto primeiro', cmp:(a, b) => (a.pago ? 1 : 0) - (b.pago ? 1 : 0) || cmpTxt(nomeLinha(a), nomeLinha(b)) },
+    nome:      { rot:'A a Z',     cmp:(a, b) => cmpTxt(nomeLinha(a), nomeLinha(b)) },
+    nomeZ:     { rot:'Z a A',     cmp:(a, b) => cmpTxt(nomeLinha(b), nomeLinha(a)) },
+    maior:     { rot:'Maior',     cmp:(a, b) => b.valor - a.valor || cmpTxt(nomeLinha(a), nomeLinha(b)) },
+    menor:     { rot:'Menor',     cmp:(a, b) => a.valor - b.valor || cmpTxt(nomeLinha(a), nomeLinha(b)) },
+    aberto:    { rot:'Em aberto', cmp:(a, b) => (a.pago ? 1 : 0) - (b.pago ? 1 : 0) || cmpTxt(nomeLinha(a), nomeLinha(b)) },
     obra:      { rot:'Obra',             cmp:(a, b) => cmpTxt(obraNome(a.obraId), obraNome(b.obraId)) || cmpTxt(nomeLinha(a), nomeLinha(b)) }
   },
   lanc: {
-    data:      { rot:'Data: mais nova',  cmp:(a, b) => cmpTxt(b.data, a.data) },
-    dataAsc:   { rot:'Data: mais antiga',cmp:(a, b) => cmpTxt(a.data, b.data) },
-    maior:     { rot:'Valor: maior',     cmp:(a, b) => b.valor - a.valor },
-    menor:     { rot:'Valor: menor',     cmp:(a, b) => a.valor - b.valor },
-    desc:      { rot:'Descrição (A a Z)',cmp:(a, b) => cmpTxt(a.desc || a.categoria, b.desc || b.categoria) },
+    data:      { rot:'Recente',  cmp:(a, b) => cmpTxt(b.data, a.data) },
+    dataAsc:   { rot:'Antiga',cmp:(a, b) => cmpTxt(a.data, b.data) },
+    maior:     { rot:'Maior',     cmp:(a, b) => b.valor - a.valor },
+    menor:     { rot:'Menor',     cmp:(a, b) => a.valor - b.valor },
+    desc:      { rot:'A a Z',cmp:(a, b) => cmpTxt(a.desc || a.categoria, b.desc || b.categoria) },
     cat:       { rot:'Categoria',        cmp:(a, b) => cmpTxt(a.categoria, b.categoria) || cmpTxt(b.data, a.data) }
   },
   fer: {
-    nome:      { rot:'Nome (A a Z)',     cmp:(a, b) => cmpTxt(a.item, b.item) },
-    nomeZ:     { rot:'Nome (Z a A)',     cmp:(a, b) => cmpTxt(b.item, a.item) },
+    nome:      { rot:'A a Z',     cmp:(a, b) => cmpTxt(a.item, b.item) },
+    nomeZ:     { rot:'Z a A',     cmp:(a, b) => cmpTxt(b.item, a.item) },
     cod:       { rot:'Etiqueta',         cmp:(a, b) => cmpTxt(a.cod || 'zzz', b.cod || 'zzz') || cmpTxt(a.item, b.item) },
     qtd:       { rot:'Quantidade',       cmp:(a, b) => (b.qtd || 0) - (a.qtd || 0) || cmpTxt(a.item, b.item) }
   },
   mat: {
-    nome:      { rot:'Nome (A a Z)',     cmp:(a, b) => cmpTxt(a.item, b.item) },
-    nomeZ:     { rot:'Nome (Z a A)',     cmp:(a, b) => cmpTxt(b.item, a.item) },
-    caro:      { rot:'Custo: maior',     cmp:(a, b) => custoMat(b) - custoMat(a) || cmpTxt(a.item, b.item) },
-    falta:     { rot:'Falta comprar',    cmp:(a, b) => faltaMat(b).falta - faltaMat(a).falta || cmpTxt(a.item, b.item) },
-    estouro:   { rot:'Passou do previsto', cmp:(a, b) => (compMat(b) - b.prev) - (compMat(a) - a.prev) || cmpTxt(a.item, b.item) }
+    nome:      { rot:'A a Z',     cmp:(a, b) => cmpTxt(a.item, b.item) },
+    nomeZ:     { rot:'Z a A',     cmp:(a, b) => cmpTxt(b.item, a.item) },
+    caro:      { rot:'Maior',     cmp:(a, b) => custoMat(b) - custoMat(a) || cmpTxt(a.item, b.item) },
+    falta:     { rot:'Faltando',    cmp:(a, b) => faltaMat(b).falta - faltaMat(a).falta || cmpTxt(a.item, b.item) },
+    estouro:   { rot:'Estourou', cmp:(a, b) => (compMat(b) - b.prev) - (compMat(a) - a.prev) || cmpTxt(a.item, b.item) }
   },
   conta: {
     venc:      { rot:'Vencimento',       cmp:(a, b) => cmpTxt(a.venc || '9999', b.venc || '9999') },
-    maior:     { rot:'Valor: maior',     cmp:(a, b) => b.valor - a.valor },
-    desc:      { rot:'Descrição (A a Z)',cmp:(a, b) => cmpTxt(a.desc, b.desc) }
+    maior:     { rot:'Maior',     cmp:(a, b) => b.valor - a.valor },
+    desc:      { rot:'A a Z',cmp:(a, b) => cmpTxt(a.desc, b.desc) }
   }
 };
 /* A ordem escolhida de cada área, com A a Z de padrão */
