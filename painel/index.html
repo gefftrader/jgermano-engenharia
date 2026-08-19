@@ -965,6 +965,7 @@
   .lugar-barra .busca { flex: 1; min-width: 180px; margin-bottom: 0; }
 
   /* Botão de duas faces: entrada ou saída, efetuado ou pendente */
+  .dica { display: block; font-size: 11.5px; color: var(--muted); margin-top: 5px; }
   .seg { display: flex; gap: 8px; }
   .seg-op {
     flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
@@ -4177,13 +4178,24 @@ function opcoesPessoas() {
   return state.pessoas.map(p => ({ v:p.id, r:p.nome + ' · ' + p.papel }));
 }
 const CATEGORIAS = ['recebimento cliente','liberação Caixa','material','mão de obra','ferramenta','combustível','outro'];
+/* Dinheiro que entra e dinheiro que sai não têm as mesmas categorias.
+   Misturar as duas listas fazia a secretária e o Jorge escolherem
+   "mão de obra" numa entrada, o que suja o relatório do mês. */
+const CAT_ENTRADA = ['recebimento cliente', 'liberação Caixa', 'outro'];
+const CAT_SAIDA = ['material', 'mão de obra', 'ferramenta', 'combustível', 'outro'];
+function categoriasDe(tipo) {
+  return (tipo === 'entrada' || tipo === 'receber') ? CAT_ENTRADA : CAT_SAIDA;
+}
 /* O valor guardado continua minúsculo (nada de migrar dado antigo), mas na
    tela toda categoria aparece com inicial maiúscula. */
 function rotCat(c) {
   const t = String(c || '');
   return t.charAt(0).toUpperCase() + t.slice(1);
 }
-function opcoesCategorias() { return CATEGORIAS.map(c => ({ v:c, r:rotCat(c) })); }
+function opcoesCategorias(tipo) { return categoriasDe(tipo).map(c => ({ v:c, r:rotCat(c) })); }
+/* Primeiro dia do mês corrente: é o piso do vencimento, pra ninguém
+   marcar uma conta pra vencer no mês passado sem querer. */
+function mesAtualISO() { return hojeISO().slice(0, 8) + '01'; }
 
 const FORMS = {
   obra: {
@@ -4218,23 +4230,30 @@ const FORMS = {
        em telas diferentes, e o Jorge procurava o pendente aqui. */
     criar: d => d.status === 'pendente'
       ? ACOES.criarConta({ tipo: d.tipo === 'entrada' ? 'receber' : 'pagar', valor: d.valor,
-          desc: d.desc || rotCat(d.categoria), venc: d.data, obraId: d.obraId,
+          desc: d.desc || rotCat(d.categoria), venc: d.venc, obraId: d.obraId,
           categoria: d.categoria, parcelas: 1 })
       : ACOES.criarLancamento(d),
     editar: (id, d) => ACOES.editarLancamento(id, d),
     excluir: id => ACOES.excluirLancamento(id),
+    /* A ordem segue o jeito de contar do Jorge: primeiro de qual obra é,
+       depois o que foi, quanto foi, e só então os detalhes. */
     campos: [
+      { k:'obraId',    rot:'Obra', opcoes: () => opcoesObras(true), full:true },
+      { k:'desc',      rot:'Descrição', full:true, ph:'Ex: cimento pro contrapiso' },
+      { k:'valor',     rot:'Valor (R$)', tipo:'number', step:'any', min:'0.01', req:true, full:true },
       { k:'tipo',      rot:'Tipo', tipo:'seg', full:true, opcoes:[
           {v:'entrada', r:'Entrada', ico:'sobe',  cor:'var(--f-inicio)'},
           {v:'saída',   r:'Saída',   ico:'desce', cor:'var(--f-execucao)'}] },
       { k:'status',    rot:'Status', tipo:'seg', full:true, soCriar:true, padrao: () => 'efetuado', opcoes:[
           {v:'efetuado', r:'Efetuado', ico:'feito',  cor:'var(--f-pos)'},
           {v:'pendente', r:'Pendente', ico:'espera', cor:'var(--f-final)'}] },
-      { k:'valor',     rot:'Valor (R$)', tipo:'number', step:'any', min:'0.01', req:true },
-      { k:'data',      rot:'Data', tipo:'date', padrao: () => hojeISO() },
-      { k:'categoria', rot:'Categoria', opcoes: () => opcoesCategorias() },
-      { k:'obraId',    rot:'Obra', opcoes: () => opcoesObras(true), full:true },
-      { k:'desc',      rot:'Descrição', full:true, ph:'Ex: cimento pro contrapiso' }
+      { k:'categoria', rot:'Categoria', full:true, opcoes: () => opcoesCategorias() },
+      /* Efetuado é dinheiro que já andou, então a data vem preenchida com
+         hoje. Pendente é dinheiro combinado, então o dia é do cliente:
+         o campo abre vazio, no mês corrente, e ele escolhe. */
+      { k:'data',      rot:'Data da realização', tipo:'date', so:{ status:['efetuado'] }, padrao: () => hojeISO() },
+      { k:'venc',      rot:'Vencimento', tipo:'date', soCriar:true, req:true,
+        so:{ status:['pendente'] }, min: mesAtualISO(), dica:'o mês já vem certo, escolha o dia' }
     ]
   },
   conta: {
@@ -4248,9 +4267,13 @@ const FORMS = {
     editar: (id, d) => ACOES.editarConta(id, d),
     excluir: id => ACOES.excluirConta(id),
     campos: [
-      { k:'tipo',      rot:'Dinheiro que', opcoes:[{v:'receber',r:'entra'},{v:'pagar',r:'sai'}] },
-      { k:'valor',     rot:'Valor total (R$)', tipo:'number', step:'any', req:true },
-      { k:'jaFoi',     rot:'Situação', full:true, opcoes:[{v:'1',r:'Efetuado'},{v:'',r:'Pendente'}] },
+      { k:'tipo',      rot:'Tipo', tipo:'seg', full:true, opcoes:[
+          {v:'receber', r:'Entrada', ico:'sobe',  cor:'var(--f-inicio)'},
+          {v:'pagar',   r:'Saída',   ico:'desce', cor:'var(--f-execucao)'}] },
+      { k:'valor',     rot:'Valor total (R$)', tipo:'number', step:'any', min:'0.01', req:true, full:true },
+      { k:'jaFoi',     rot:'Status', tipo:'seg', full:true, opcoes:[
+          {v:'1', r:'Efetuado', ico:'feito',  cor:'var(--f-pos)'},
+          {v:'',  r:'Pendente', ico:'espera', cor:'var(--f-final)'}] },
       { k:'venc',      rot:'Data do pagamento', tipo:'date', req:true, padrao: () => hojeISO(), so:{ jaFoi:['1'] } },
       { k:'venc2',     rot:'1º vencimento', tipo:'date', req:true, espelha:'venc', padrao: () => hojeISO(), so:{ jaFoi:[''] } },
       { k:'parcelas',  rot:'Parcelas', tipo:'number', min:'1', max:'36', step:'1', padrao: () => 1, so:{ jaFoi:[''] }, soCriar:true },
@@ -4436,13 +4459,19 @@ function abrirForm(nome, id) {
       : (c.padrao ? c.padrao() : '');
     const cls = c.full ? ' class="full"' : '';
     let campo;
-    if (c.opcoes) {
+    /* O tipo do campo manda no formato. Isto vem ANTES do teste de
+       opcoes: chip também tem opções, e testar opcoes primeiro fazia o
+       chip sair como lista. */
+    if (c.tipo === 'seg' || c.tipo === 'cor') {
+      campo = '';
+    } else if (c.opcoes) {
       const ops = (typeof c.opcoes === 'function' ? c.opcoes() : c.opcoes)
         .map(o => (typeof o === 'string' ? { v:o, r:o } : o));
       campo = '<select id="mf-' + c.k + '">' + ops.map(o =>
         '<option value="' + esc(o.v) + '"' + (String(o.v) === String(val) ? ' selected' : '') + '>' + esc(o.r) + '</option>'
       ).join('') + '</select>';
-    } else if (c.tipo === 'seg') {
+    }
+    if (c.tipo === 'seg') {
       /* Escolha de duas ou três opções vira botão lado a lado em vez de
          lista: é um toque em vez de três, e o Jorge vê as duas saídas
          sem precisar abrir nada. */
@@ -4455,7 +4484,8 @@ function abrirForm(nome, id) {
           ' aria-pressed="' + (String(o.v) === atual ? 'true' : 'false') + '">' +
           (o.ico && ICO_SEG[o.ico] ? ICO_SEG[o.ico] : '') + esc(o.r) + '</button>').join('') +
         '</span>';
-    } else if (c.tipo === 'cor') {
+    }
+    if (c.tipo === 'cor') {
       /* Amostra de cor em vez de seletor do sistema: a paleta é fechada
          de propósito, pra nenhuma obra sair com uma cor que some no
          fundo ou que engole o texto branco por cima. */
@@ -4466,7 +4496,8 @@ function abrirForm(nome, id) {
           ' style="background:' + h + '" data-cor="' + h + '" aria-label="Cor ' + h + '"' +
           ' aria-pressed="' + (h.toUpperCase() === atual ? 'true' : 'false') + '"></button>').join('') +
         '</span>';
-    } else {
+    }
+    if (!campo) {
       campo = '<input id="mf-' + c.k + '" type="' + (c.tipo || 'text') + '"' +
         (c.req ? ' required' : '') + (c.min !== undefined ? ' min="' + c.min + '"' : '') +
         (c.max !== undefined ? ' max="' + c.max + '"' : '') + (c.step ? ' step="' + c.step + '"' : '') +
@@ -4475,7 +4506,8 @@ function abrirForm(nome, id) {
     /* Campo que só aparece dependendo da resposta de outro (Efetuado x
        Pendente): fica marcado e o listener abaixo mostra ou esconde */
     const cond = c.so ? ' data-so="' + esc(Object.keys(c.so)[0]) + '" data-so-v="' + esc(c.so[Object.keys(c.so)[0]].join('|')) + '"' : '';
-    return '<div' + cls + cond + '><label class="lab" for="mf-' + c.k + '">' + esc(c.rot) + '</label>' + campo + '</div>';
+    return '<div' + cls + cond + '><label class="lab" for="mf-' + c.k + '">' + esc(c.rot) + '</label>' + campo +
+      (c.dica ? '<span class="dica">' + esc(c.dica) + '</span>' : '') + '</div>';
   }).join('') + (F.nota ? '<p class="modal-nota full">' + esc(F.nota) + '</p>' : '');
 
   document.getElementById('modal-form').innerHTML = html;
@@ -4489,8 +4521,10 @@ function abrirForm(nome, id) {
       x.classList.toggle('on', x === b);
       x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
     });
+    if (alvo && alvo.id === 'mf-tipo') sincronizarCategorias();
     aplicarCondicoes();
   }));
+  sincronizarCategorias();
   /* As amostras de cor: clicar troca a marcada e guarda no campo escondido */
   document.querySelectorAll('#modal-form [data-cor]').forEach(b => b.addEventListener('click', () => {
     const caixa = b.closest('.cores');
@@ -4522,6 +4556,19 @@ function abrirForm(nome, id) {
 
 /* Mostra ou esconde os campos condicionais e desliga o required do que
    está escondido, senão o navegador barra o envio por campo invisível */
+/* Entrada e saída não têm as mesmas categorias, então trocar o tipo
+   troca a lista. Mantém o que estava escolhido quando ainda serve. */
+function sincronizarCategorias() {
+  const selT = document.getElementById('mf-tipo');
+  const selC = document.getElementById('mf-categoria');
+  if (!selT || !selC) return;
+  const lista = categoriasDe(selT.value);
+  const antes = selC.value;
+  selC.innerHTML = lista.map(c =>
+    '<option value="' + esc(c) + '"' + (c === antes ? ' selected' : '') + '>' + esc(rotCat(c)) + '</option>').join('');
+  if (lista.indexOf(antes) < 0) selC.value = lista[0];
+}
+
 function aplicarCondicoes() {
   document.querySelectorAll('#modal-form [data-so]').forEach(div => {
     const gov = document.getElementById('mf-' + div.dataset.so);
