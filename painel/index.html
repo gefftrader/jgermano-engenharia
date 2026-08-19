@@ -450,15 +450,17 @@
   .pill.caixa       { --chip: #0A5A8F; }
   .pill.alerta      { --chip: #B3353A; }
   .pill.ok          { --chip: #307547; }
-  .pill.temp-quente { --chip: #A65932; margin-left: 8px; }
+  /* Temperatura do possível cliente: vermelho quer atenção hoje,
+     marrom é conversa em andamento, azul é quem só passou pra olhar. */
+  .pill.temp-quente { --chip: #A63A33; margin-left: 8px; }
   .pill.temp-morno  { --chip: #8A5A3C; margin-left: 8px; }
-  .pill.temp-frio   { --chip: #5F6975; margin-left: 8px; }
+  .pill.temp-frio   { --chip: #3A6390; margin-left: 8px; }
   :root[data-theme="dark"] .pill.caixa       { --chip: #5D92B5; }
   :root[data-theme="dark"] .pill.alerta      { --chip: #CD7A7D; }
   :root[data-theme="dark"] .pill.ok          { --chip: #76A486; }
-  :root[data-theme="dark"] .pill.temp-quente { --chip: #C49178; }
+  :root[data-theme="dark"] .pill.temp-quente { --chip: #C57D77; }
   :root[data-theme="dark"] .pill.temp-morno  { --chip: #B2927E; }
-  :root[data-theme="dark"] .pill.temp-frio   { --chip: #9FA7AE; }
+  :root[data-theme="dark"] .pill.temp-frio   { --chip: #7D9AB9; }
 
   /* ===================================================================
      FASES DA OBRA. O trilho de 4 passos no detalhe e a mini-trilha nos
@@ -3989,7 +3991,7 @@ const FORMS = {
     editar: (id, d) => ACOES.editarLancamento(id, d),
     excluir: id => ACOES.excluirLancamento(id),
     campos: [
-      { k:'tipo',      rot:'Tipo', opcoes:[{v:'entrada',r:'Entrada, dinheiro que chegou'},{v:'saída',r:'Saída, dinheiro que saiu'}] },
+      { k:'tipo',      rot:'Tipo', opcoes:[{v:'entrada',r:'Entrada'},{v:'saída',r:'Saída'}] },
       { k:'valor',     rot:'Valor (R$)', tipo:'number', step:'any', req:true },
       { k:'data',      rot:'Data', tipo:'date', padrao: () => hojeISO() },
       { k:'categoria', rot:'Categoria', opcoes: () => opcoesCategorias() },
@@ -4064,7 +4066,7 @@ const FORMS = {
       { k:'tel',         rot:'Telefone', ph:'(87) 9 ....' },
       { k:'interesse',   rot:'Interesse', opcoes:['Financiamento Caixa','construção','reforma','ampliação','regularização'] },
       { k:'origem',      rot:'Como chegou', opcoes:['indicação','Instagram','WhatsApp','na rua','outro'] },
-      { k:'temperatura', rot:'Chance de fechar', opcoes:[{v:'quente',r:'Quente, perto de fechar'},{v:'morno',r:'Morno, conversando'},{v:'frio',r:'Frio, só sondou'}] },
+      { k:'temperatura', rot:'Chance de fechar', opcoes:[{v:'quente',r:'Quente'},{v:'morno',r:'Morno'},{v:'frio',r:'Frio'}] },
       { k:'obs',         rot:'Anotações', full:true, ph:'Ex: já tem o terreno, esperando análise' }
     ],
     nota: 'Quando fechar, o botão "Virou obra" cria a obra em orçamento sem redigitar nada.'
@@ -4132,7 +4134,7 @@ const FORMS = {
     ler: () => ({}),
     criar: d => ACOES.registrarCompra(obraAberta, d),
     campos: [
-      { k:'materialId', rot:'Material', full:true, opcoes: () => [{ v:'', r:'Outro item, não está na lista' }]
+      { k:'materialId', rot:'Material', full:true, opcoes: () => [{ v:'', r:'Outro item' }]
           .concat(state.materiais.filter(m => m.obraId === obraAberta).map(m => ({ v:m.id, r:m.item }))) },
       { k:'item',  rot:'Se for outro, qual?', ph:'Ex: Telha colonial' },
       { k:'un',    rot:'Unidade', opcoes:['un','sc','m³','milheiro','barra','m²','kg','L'] },
