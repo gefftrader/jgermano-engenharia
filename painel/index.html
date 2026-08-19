@@ -4210,7 +4210,7 @@ const FORMS = {
       { k:'cliente',  rot:'Cliente' },
       { k:'tel',      rot:'Telefone', ph:'(87) 9 ....' },
       { k:'tipo',     rot:'Tipo', opcoes:['Financiamento Caixa','construção','reforma','ampliação','regularização'] },
-      { k:'cor',      rot:'Cor da obra', tipo:'cor', dica:'é a cor que identifica esta obra em todo o sistema' },
+      { k:'cor',      rot:'Cor da obra', tipo:'cor' },
       { k:'status',   rot:'Fase', opcoes:['orçamento','aguardando aprovação de crédito','início','execução','final de obra','pós-obra','pausada','concluída'] },
       { k:'contrato', rot:'Valor do contrato (R$)', tipo:'number', step:'100' },
       { k:'entrada',  rot:'Entrada do cliente (R$)', tipo:'number', step:'100' },
@@ -4253,7 +4253,7 @@ const FORMS = {
          o campo abre vazio, no mês corrente, e ele escolhe. */
       { k:'data',      rot:'Data da realização', tipo:'date', so:{ status:['efetuado'] }, padrao: () => hojeISO() },
       { k:'venc',      rot:'Vencimento', tipo:'date', soCriar:true, req:true,
-        so:{ status:['pendente'] }, min: mesAtualISO(), dica:'o mês já vem certo, escolha o dia' }
+        so:{ status:['pendente'] }, min: mesAtualISO() }
     ]
   },
   conta: {
@@ -4356,7 +4356,6 @@ const FORMS = {
     criar: () => ({ ok:false, msg:'Use o botão de guardar documento.' }),
     editar: (id, d) => ACOES.renomearDoc(id, d.nome),
     excluir: id => ACOES.excluirDoc(id),
-    nota: 'Um nome que você entenda depois vale mais que o nome que o celular deu. Ex: pagamento da primeira entrada.',
     campos: [
       { k:'nome', rot:'Nome', full:true, req:true, ph:'Ex: pagamento da primeira entrada' }
     ]
