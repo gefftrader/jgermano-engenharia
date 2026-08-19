@@ -54,14 +54,14 @@
     /* Uma cor por posição do trilho da obra. O mesmo token pinta o
        número na lista de Obras, a barra lateral do card e o trilho do
        detalhe, então trocar aqui troca em tudo. */
-    --f-orcamento: #6E7379;
-    --f-credito:   #0F6E68;
-    --f-inicio:    #127D75;
-    --f-execucao:  #C2521E;
-    --f-final:     #8A6508;
-    --f-pos:       #1F6B41;
-    --f-pausada:   #A32F1F;
-    --f-concluida: #4A4E54;
+    --f-orcamento: #7A7168;
+    --f-credito:   #3F5E7A;
+    --f-inicio:    #227673;
+    --f-execucao:  #A65932;
+    --f-final:     #8A5A3C;
+    --f-pos:       #307547;
+    --f-pausada:   #6D4E75;
+    --f-concluida: #56595F;
 
     --shadow: 0 1px 2px rgba(34,37,42,.05), 0 4px 14px rgba(34,37,42,.05);
     --shadow-lg: 0 2px 6px rgba(34,37,42,.06), 0 18px 42px rgba(34,37,42,.10);
@@ -94,14 +94,14 @@
     --warn-soft: #38301F;
     --crit: #F09182;
     --crit-soft: #3B2724;
-    --f-orcamento: #A0A5AC;
-    --f-credito:   #3DA79F;
-    --f-inicio:    #45B0A7;
-    --f-execucao:  #F2743C;
-    --f-final:     #D9A03F;
-    --f-pos:       #63BE90;
-    --f-pausada:   #F09182;
-    --f-concluida: #9DA1A7;
+    --f-orcamento: #A7A19B;
+    --f-credito:   #8095A7;
+    --f-inicio:    #6DA5A3;
+    --f-execucao:  #C49178;
+    --f-final:     #B2927E;
+    --f-pos:       #76A486;
+    --f-pausada:   #9F8AA4;
+    --f-concluida: #8F9195;
 
     --shadow: 0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.25);
     --shadow-lg: 0 2px 6px rgba(0,0,0,.35), 0 18px 42px rgba(0,0,0,.4);
@@ -428,28 +428,47 @@
   /* ===================================================================
      PILLS
      =================================================================== */
-  .pill { display: inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 10px; border-radius: 99px; white-space: nowrap; }
-  /* Um chip por fase, cores da paleta */
-  .pill.orcamento { background: var(--card-2); color: var(--muted); border: 1px solid var(--line); }
-  .pill.credito   { background: transparent; color: var(--petrol-ink); border: 1px dashed var(--petrol); }
-  .pill.inicio    { background: var(--petrol-soft); color: var(--petrol-ink); }
-  .pill.execucao  { background: var(--accent-soft); color: var(--accent-ink); }
-  .pill.andamento { background: var(--accent-soft); color: var(--accent-ink); }
-  .pill.final     { background: var(--warn-soft); color: var(--warn); }
-  .pill.pos       { background: var(--good-soft); color: var(--good); }
-  .pill.pausada   { background: var(--crit-soft); color: var(--crit); }
-  .pill.concluida { background: var(--line-2); color: var(--ink-2); }
-  .pill.caixa     { background: var(--petrol-soft); color: var(--caixa-ink); }
-  .pill.alerta    { background: var(--crit-soft); color: var(--crit); }
-  .pill.ok        { background: var(--good-soft); color: var(--good); }
-  .pill.temp-quente { background: var(--accent-soft); color: var(--accent-ink); margin-left: 8px; }
-  .pill.temp-morno  { background: var(--warn-soft); color: var(--warn); margin-left: 8px; }
-  .pill.temp-frio   { background: var(--card-2); color: var(--muted); border: 1px solid var(--line); margin-left: 8px; }
+  /* Chip fosco: cor cheia e assentada, sem brilho e sem pastel aguado.
+     O texto por cima usa a cor do papel, então no tema claro sai branco
+     e no escuro sai escuro, com uma regra só. Toda combinação daqui foi
+     conferida no cálculo de contraste da WCAG e passa de 4,5 pra 1. */
+  .pill {
+    display: inline-block; font-size: 11.5px; font-weight: 700; padding: 3px 10px;
+    border-radius: 99px; white-space: nowrap; background: var(--chip); color: var(--chip-ink);
+  }
+  :root { --chip: #56595F; --chip-ink: #FFFFFF; }
+  :root[data-theme="dark"] { --chip-ink: #1B1E21; }
+  .pill.orcamento   { --chip: var(--f-orcamento); }
+  .pill.credito     { --chip: var(--f-credito); }
+  .pill.inicio      { --chip: var(--f-inicio); }
+  .pill.execucao    { --chip: var(--f-execucao); }
+  .pill.andamento   { --chip: var(--f-execucao); }
+  .pill.final       { --chip: var(--f-final); }
+  .pill.pos         { --chip: var(--f-pos); }
+  .pill.pausada     { --chip: var(--f-pausada); }
+  .pill.concluida   { --chip: var(--f-concluida); }
+  .pill.caixa       { --chip: #0A5A8F; }
+  .pill.alerta      { --chip: #B3353A; }
+  .pill.ok          { --chip: #307547; }
+  .pill.temp-quente { --chip: #A65932; margin-left: 8px; }
+  .pill.temp-morno  { --chip: #8A5A3C; margin-left: 8px; }
+  .pill.temp-frio   { --chip: #5F6975; margin-left: 8px; }
+  :root[data-theme="dark"] .pill.caixa       { --chip: #5D92B5; }
+  :root[data-theme="dark"] .pill.alerta      { --chip: #CD7A7D; }
+  :root[data-theme="dark"] .pill.ok          { --chip: #76A486; }
+  :root[data-theme="dark"] .pill.temp-quente { --chip: #C49178; }
+  :root[data-theme="dark"] .pill.temp-morno  { --chip: #B2927E; }
+  :root[data-theme="dark"] .pill.temp-frio   { --chip: #9FA7AE; }
 
   /* ===================================================================
      FASES DA OBRA. O trilho de 4 passos no detalhe e a mini-trilha nos
      cards: o cliente sente o cuidado com a etapa que ele está vivendo.
      =================================================================== */
+  /* A marca da obra: um quadradinho da cor dela, colado no nome */
+  .ponto-obra {
+    display: inline-block; width: 8px; height: 8px; border-radius: 3px;
+    flex: none; margin-right: 7px; vertical-align: 1px;
+  }
   .fase-dot { display: inline-block; width: 9px; height: 9px; border-radius: 99px; flex: none; }
   .fase-sub { text-transform: none; letter-spacing: 0; font-weight: 500; }
   .fase-mini { display: flex; gap: 4px; margin-top: 8px; max-width: 230px; }
@@ -487,6 +506,14 @@
     font-size: 13px; color: var(--muted); padding: 12px 17px;
   }
   .strip b { color: var(--ink); font-variant-numeric: tabular-nums; font-size: 15px; }
+  /* Número que leva a algum lugar: sublinhado discreto, sem virar botão gritante */
+  .strip .lig {
+    background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer;
+    border-bottom: 1px dashed var(--line); text-align: left;
+  }
+  .strip .lig:hover { color: var(--ink); border-bottom-color: var(--muted); }
+  .tile.clicavel { cursor: pointer; text-align: left; font: inherit; width: 100%; display: block; }
+  .tile.clicavel:hover { box-shadow: var(--shadow-lg); }
 
   /* Seletor de ordem: discreto, igual em toda área que tem lista */
   .ord { display: inline-flex; align-items: center; gap: 6px; flex: none; }
@@ -819,7 +846,15 @@
   }
   .lugar-card:first-of-type { margin-top: 0; }
   .lugar-card.galpao { border-left-color: var(--petrol); }
+  .lugar-card.obra { border-left-color: var(--fcor); }
+  .lugar-card.obra .n { background: color-mix(in srgb, var(--fcor) 15%, var(--card)); color: var(--fcor); }
+  .lugar-card.obra.on { border-color: color-mix(in srgb, var(--fcor) 45%, var(--line)); border-left-color: var(--fcor); }
   .lugar-card.manut { border-left-color: var(--crit); }
+  /* O ícone que diz que lugar é aquele, colado no nome */
+  .lugar-card .txt b svg {
+    width: 15px; height: 15px; vertical-align: -2px; margin-right: 8px;
+    stroke: currentColor; fill: none; stroke-width: 1.8; color: var(--muted);
+  }
   .lugar-card.manut .n { background: var(--crit-soft); color: var(--crit); }
   .lugar-card.manut.vazia .n { background: var(--card-2); color: var(--muted); border: 1px dashed var(--line); }
   .lugar-card:hover { box-shadow: var(--shadow-lg); }
@@ -869,6 +904,15 @@
   }
   .lugar-barra { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
   .lugar-barra .busca { flex: 1; min-width: 180px; margin-bottom: 0; }
+
+  /* Amostras de cor do formulário da obra */
+  .cores { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cor-op {
+    width: 28px; height: 28px; border-radius: 9px; border: 2px solid transparent;
+    cursor: pointer; padding: 0; box-shadow: 0 0 0 1px var(--line) inset;
+  }
+  .cor-op.on { border-color: var(--ink); }
+  .cor-op:hover { transform: scale(1.06); }
 
   .fer-locais { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 11px; padding-top: 10px; border-top: 1px solid var(--line-2); }
   .fer-chip {
@@ -1222,9 +1266,9 @@ function dadosExemplo() {
       /* Obras reais que o Jorge passou em 19/08/2026, com o percentual
          que ele mesmo mediu. Contrato, entrada e datas ainda são valor
          de exemplo: assim que ele passar os números, é só editar. */
-      { id:'o1', nome:'Obra da Mirelly', cliente:'Mirelly', tel:'', tipo:'Financiamento Caixa', status:'execução', contrato:215000, entrada:15000, inicio:'2026-03-02', entrega:'2026-11-30', progresso:53, endereco:'Novo Jardim' },
-      { id:'o2', nome:'Obra do Maclean', cliente:'Maclean', tel:'', tipo:'construção', status:'execução', contrato:180000, entrada:0, inicio:'2026-05-04', entrega:'2027-01-30', progresso:27.1, endereco:'' },
-      { id:'o3', nome:'Obra do Marconi no Elita', cliente:'Marconi', tel:'', tipo:'construção, 2 casas', status:'final de obra', contrato:320000, entrada:0, inicio:'2026-01-15', entrega:'2026-10-30', progresso:80, endereco:'Elita' }
+      { id:'o1', nome:'Obra da Mirelly', cliente:'Mirelly', tel:'', tipo:'Financiamento Caixa', status:'execução', contrato:215000, entrada:15000, inicio:'2026-03-02', entrega:'2026-11-30', progresso:53, endereco:'Novo Jardim', cor:'#A65932' },
+      { id:'o2', nome:'Obra do Maclean', cliente:'Maclean', tel:'', tipo:'construção', status:'execução', contrato:180000, entrada:0, inicio:'2026-05-04', entrega:'2027-01-30', progresso:27.1, endereco:'', cor:'#10665F' },
+      { id:'o3', nome:'Obra do Marconi no Elita', cliente:'Marconi', tel:'', tipo:'construção, 2 casas', status:'final de obra', contrato:320000, entrada:0, inicio:'2026-01-15', entrega:'2026-10-30', progresso:80, endereco:'Elita', cor:'#3F5E7A' }
     ],
     /* Equipe real da JGermano (18/08/2026). As funções foram deduzidas da
        faixa de diária e o Jorge ajusta na tela: 150 pedreiro, 120 e 100
@@ -1413,6 +1457,8 @@ function migrar() {
   state.obras.forEach(o => {
     if (typeof o.progresso !== 'number') o.progresso = (o.status === 'concluída' ? 100 : 0);
     if (typeof o.endereco !== 'string') o.endereco = '';
+    /* Obra salva antes das cores existirem pega a próxima da paleta */
+    if (!o.cor) o.cor = PALETA_OBRA[state.obras.indexOf(o) % PALETA_OBRA.length];
     if (typeof o.entrada !== 'number') o.entrada = 0;
     /* v6/v7: nomes das fases nas versões antigas viram os atuais */
     if (o.status === 'em andamento') o.status = 'execução';
@@ -1587,6 +1633,35 @@ function recebidoObra(id) {
 function somaMes(prefixo, tipo) {
   return state.lancamentos.filter(l => l.data.startsWith(prefixo) && l.tipo === tipo).reduce((s, l) => s + l.valor, 0);
 }
+/* Os dois lugares que não são obra ganham desenho em vez de só nome:
+   um galpão de telhado e uma chave de boca. */
+const ICO_LUGAR = {
+  galpao: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V9.6l9-5.6 9 5.6V21"/><path d="M2 21h20"/><path d="M8.5 21v-6.5h7V21"/></svg>',
+  manutencao: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 6.4a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.7-3.7a6 6 0 0 1-7.9 7.9l-6.8 6.8a2.1 2.1 0 0 1-3-3l6.8-6.8a6 6 0 0 1 7.9-7.9l-3.7 3.7z"/></svg>'
+};
+
+/* Cada obra tem uma cor, e essa cor anda com ela pelo sistema inteiro:
+   no cartão, no trilho, na linha do financeiro, no chip da ferramenta,
+   na barra de custo. O Jorge para de ler nome pra saber de qual obra a
+   linha está falando, ele bate o olho na cor. São dez tons foscos, sem
+   amarelo, todos com contraste conferido pra aguentar texto branco. */
+const PALETA_OBRA = ['#A65932', '#10665F', '#9C4A3F', '#3F5E7A', '#4A6B41',
+                     '#6A4A6E', '#2C6E75', '#8A5A3C', '#2E6B4F', '#55595F'];
+function corObra(x) {
+  const o = typeof x === 'string' ? obra(x) : x;
+  return (o && o.cor) || '#55595F';
+}
+/* O ponto que carrega a cor da obra ao lado do nome dela */
+function pontoObra(x) {
+  const o = typeof x === 'string' ? obra(x) : x;
+  return o ? '<span class="ponto-obra" style="background:' + corObra(o) + '"></span>' : '';
+}
+/* Nome da obra nunca aparece sozinho: vem sempre com o ponto da cor */
+function nomeComCor(x) {
+  const o = typeof x === 'string' ? obra(x) : x;
+  return o ? pontoObra(o) + esc(o.nome) : '';
+}
+
 /* O trilho da obra: seis posições, numeradas de 0 a 5. Orçamento e
    aguardando aprovação de crédito entraram no trilho porque é justamente
    ali que a obra passa mais tempo parada, e o Jorge precisa enxergar
@@ -1685,6 +1760,7 @@ const ACOES = {
     const o = {
       id: uid(), nome: d.nome, cliente: d.cliente || '', tel: d.tel || '',
       tipo: d.tipo || 'construção', status: d.status || 'orçamento',
+      cor: d.cor || PALETA_OBRA[state.obras.length % PALETA_OBRA.length],
       contrato: Number(d.contrato) || 0, entrada: Number(d.entrada) || 0,
       inicio: d.inicio || '', entrega: d.entrega || '',
       progresso: Number(d.progresso) || 0, endereco: d.endereco || ''
@@ -1700,7 +1776,8 @@ const ACOES = {
       status: d.status, contrato: Number(d.contrato) || 0,
       entrada: d.entrada === undefined ? (o.entrada || 0) : (Number(d.entrada) || 0),
       inicio: d.inicio, entrega: d.entrega, endereco: d.endereco,
-      progresso: d.progresso === undefined ? o.progresso : Number(d.progresso)
+      progresso: d.progresso === undefined ? o.progresso : Number(d.progresso),
+      cor: d.cor || o.cor
     });
     salvar();
     return { ok:true, msg:'Obra "' + o.nome + '" atualizada.' };
@@ -3894,6 +3971,7 @@ const FORMS = {
       { k:'cliente',  rot:'Cliente' },
       { k:'tel',      rot:'Telefone', ph:'(87) 9 ....' },
       { k:'tipo',     rot:'Tipo', opcoes:['Financiamento Caixa','construção','reforma','ampliação','regularização'] },
+      { k:'cor',      rot:'Cor da obra', tipo:'cor', dica:'é a cor que identifica esta obra em todo o sistema' },
       { k:'status',   rot:'Fase', opcoes:['orçamento','aguardando aprovação de crédito','início','execução','final de obra','pós-obra','pausada','concluída'] },
       { k:'contrato', rot:'Valor do contrato (R$)', tipo:'number', step:'100' },
       { k:'entrada',  rot:'Entrada do cliente (R$)', tipo:'number', step:'100' },
@@ -4113,6 +4191,17 @@ function abrirForm(nome, id) {
       campo = '<select id="mf-' + c.k + '">' + ops.map(o =>
         '<option value="' + esc(o.v) + '"' + (String(o.v) === String(val) ? ' selected' : '') + '>' + esc(o.r) + '</option>'
       ).join('') + '</select>';
+    } else if (c.tipo === 'cor') {
+      /* Amostra de cor em vez de seletor do sistema: a paleta é fechada
+         de propósito, pra nenhuma obra sair com uma cor que some no
+         fundo ou que engole o texto branco por cima. */
+      const atual = String(val || PALETA_OBRA[0]).toUpperCase();
+      campo = '<input type="hidden" id="mf-' + c.k + '" value="' + esc(atual) + '">' +
+        '<span class="cores" role="group" aria-label="Cor da obra">' + PALETA_OBRA.map(h =>
+          '<button type="button" class="cor-op' + (h.toUpperCase() === atual ? ' on' : '') + '"' +
+          ' style="background:' + h + '" data-cor="' + h + '" aria-label="Cor ' + h + '"' +
+          ' aria-pressed="' + (h.toUpperCase() === atual ? 'true' : 'false') + '"></button>').join('') +
+        '</span>';
     } else {
       campo = '<input id="mf-' + c.k + '" type="' + (c.tipo || 'text') + '"' +
         (c.req ? ' required' : '') + (c.min !== undefined ? ' min="' + c.min + '"' : '') +
@@ -4126,6 +4215,16 @@ function abrirForm(nome, id) {
   }).join('') + (F.nota ? '<p class="modal-nota full">' + esc(F.nota) + '</p>' : '');
 
   document.getElementById('modal-form').innerHTML = html;
+  /* As amostras de cor: clicar troca a marcada e guarda no campo escondido */
+  document.querySelectorAll('#modal-form [data-cor]').forEach(b => b.addEventListener('click', () => {
+    const caixa = b.closest('.cores');
+    const alvo = caixa.previousElementSibling;
+    if (alvo) alvo.value = b.dataset.cor;
+    caixa.querySelectorAll('.cor-op').forEach(x => {
+      x.classList.toggle('on', x === b);
+      x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+    });
+  }));
   aplicarCondicoes();
   /* Reavalia a cada mudança dos campos que governam os condicionais */
   const governantes = new Set();
@@ -4220,6 +4319,14 @@ function irPara(aba) {
   if (aba !== 'obras') obraAberta = null;
   render();
   window.scrollTo({ top: 0 });
+}
+/* Do número do painel direto pra fase: abre Obras já com aquela fase
+   aberta e todas as outras recolhidas. É pra ele chegar vendo só o que
+   clicou, sem precisar procurar. */
+function irParaFase(chave) {
+  obraAberta = null;
+  Object.keys(grupoAberto).forEach(k => { grupoAberto[k] = k === chave; });
+  irPara('obras');
 }
 
 function badges() {
@@ -4422,13 +4529,13 @@ function telaPainel() {
 
     <div class="eyebrow">Agora</div>
     <div class="tiles">
-      <div class="tile t-accent"><div class="k">Em execução</div><div class="v">${emExecucao.length}</div><div class="s">${moeda(contratado)} contratados</div></div>
+      <button class="tile t-accent clicavel" data-fase-ir="execucao" title="Ver as obras em execução"><div class="k">Em execução</div><div class="v">${emExecucao.length}</div><div class="s">${moeda(contratado)} contratados</div></button>
       <div class="tile t-petrol"><div class="k">A receber</div><div class="v">${moeda(aReceber)}</div><div class="s">falta entrar dos contratos</div></div>
       <div class="tile ${pend.length ? 't-crit' : 't-good'}"><div class="k">A pagar na folha</div><div class="v">${moeda(aPagar)}</div><div class="s">${pend.length} pendente${pend.length === 1 ? '' : 's'}</div></div>
     </div>
     <div class="card strip" style="margin-top:10px">
-      <span>Na Caixa <b>${naCaixa}</b></span>
-      <span>Em orçamento <b>${emOrcamento.length}</b> · ${moeda(orcadoAberto)}</span>
+      <button class="lig" data-fase-ir="credito">Na Caixa <b>${naCaixa}</b></button>
+      <button class="lig" data-fase-ir="orcamento">Em orçamento <b>${emOrcamento.length}</b>${orcadoAberto ? ' · ' + moeda(orcadoAberto) : ''}</button>
       <span>Gente em obra <b>${equipeCampo}</b></span>
       <span>Ferramenta fora <b>${ferFora}</b></span>
       <span>Possíveis clientes <b>${state.leads.length}</b></span>
@@ -4513,8 +4620,8 @@ function telaPainel() {
         <h3>Custo por obra</h3>
         ${custos.length ? custos.map(x => `
           <div class="hbar-row">
-            <span class="hbar-nome" title="${esc(x.o.nome)}">${esc(x.o.nome)}</span>
-            <span class="hbar-track"><i style="width:${Math.round(100 * x.c / maxC)}%"></i></span>
+            <span class="hbar-nome" title="${esc(x.o.nome)}">${nomeComCor(x.o)}</span>
+            <span class="hbar-track"><i style="width:${Math.round(100 * x.c / maxC)}%;background:${corObra(x.o)}"></i></span>
             <span class="hbar-val money">${moeda(x.c)}</span>
           </div>`).join('') : '<div class="empty">Nenhuma saída lançada ainda.</div>'}
       </div>
@@ -4545,11 +4652,11 @@ function telaObras() {
      o buraco: fase vazia é informação, não é ausência de informação.
      Pausada e concluída vêm depois, separadas, porque não são etapa. */
   const grupos = FASES.map((f, i) => ({
-    chave: PILL[f], num: String(i), fase: f, fora: false,
-    rot: f.charAt(0).toUpperCase() + f.slice(1),
+    chave: PILL[f], fase: f, fora: false,
+    rot: 'Fase ' + i + ' · ' + f.charAt(0).toUpperCase() + f.slice(1),
     sub: FASE_SUB[f], cor: FASE_COR[f], f: o => o.status === f
   })).concat(['pausada', 'concluída'].map(f => ({
-    chave: PILL[f], num: ICO_FORA[f], fase: f, fora: true,
+    chave: PILL[f], fase: f, fora: true, ico: ICO_FORA[f],
     rot: f === 'pausada' ? 'Pausadas' : 'Concluídas',
     sub: FASE_SUB[f], cor: FASE_COR[f], f: o => o.status === f
   })));
@@ -4573,13 +4680,14 @@ function telaObras() {
       const soma = lista.reduce((s, o) => s + (o.contrato || 0), 0);
       const risco = g.fora && !grupos[gi - 1].fora
         ? '<div class="eyebrow" style="margin-top:24px">Fora do trilho</div>' : '';
+      /* O número grande é quantas obras estão ali, e o nome já diz que
+         fase é. Fase vazia mostra o zero e mais nada: quem chega numa
+         fase vazia veio cadastrar, não veio ler. */
       const cabeca = `
-        <span class="n">${g.num}</span>
+        <span class="n">${g.fora ? g.ico : lista.length}</span>
         <span class="txt">
           <b>${esc(g.rot)}</b>
-          <span class="sub">${vazio
-            ? 'nenhuma obra aqui, ' + g.sub
-            : lista.length + (lista.length === 1 ? ' obra · ' : ' obras · ') + moeda(soma) + ' em contrato'}</span>
+          ${vazio ? '' : `<span class="sub">${moeda(soma)} em contrato</span>`}
         </span>`;
 
       /* Fase vazia vira placa, não vira botão: clicar em nada é ruído. */
@@ -4596,13 +4704,13 @@ function telaObras() {
             const s = saudeObra(o);
             const ativa = emObra(o);
             return `<div class="linha-ed">
-              <button class="obra-card" data-obra="${o.id}" style="border-left:4px solid ${g.cor}">
-                <span class="ini">${esc(iniciais(o.nome))}</span>
+              <button class="obra-card" data-obra="${o.id}" style="border-left:4px solid ${corObra(o)}">
+                <span class="ini" style="background:${corObra(o)};color:#FFFFFF">${esc(iniciais(o.nome))}</span>
                 <span class="meio">
                   <span class="obra-nome">${esc(o.nome)}</span><br>
                   <span class="obra-meta">${esc(o.cliente || 'cliente a definir')} · ${esc(o.tipo)}${o.entrega ? ' · entrega ' + dataBR(o.entrega) : ''}</span>
                   ${ativa ? '<span class="bar" style="display:block;max-width:230px;margin-top:7px"><i class="exec" style="width:' + Math.min(100, s.exec) + '%"></i></span>' : ''}
-                  ${faseMini(o, g.cor)}
+                  ${faseMini(o, corObra(o))}
                 </span>
                 <span class="dir">
                   <span class="money">${moeda(o.contrato)}</span>
@@ -4634,7 +4742,7 @@ function telaObraDetalhe(id) {
 
     <div class="card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <span class="ini" style="width:44px;height:44px;border-radius:12px;background:var(--petrol);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">${esc(iniciais(o.nome))}</span>
+        <span class="ini" style="width:44px;height:44px;border-radius:12px;background:${corObra(o)};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800">${esc(iniciais(o.nome))}</span>
         <span>
           <span style="font-size:18px;font-weight:800;letter-spacing:-.015em">${esc(o.nome)}</span><br>
           <span class="obra-meta">${esc(o.cliente || 'cliente a definir')}${o.tel ? ' · ' + esc(o.tel) : ''}${o.endereco ? ' · ' + esc(o.endereco) : ''}</span>
@@ -4924,7 +5032,7 @@ function telaPagamentos() {
           return `<div class="pay-row ${l.pago ? 'pago' : ''}">
             <span style="min-width:0;flex:1">
               <span class="pay-nome">${esc(p ? p.nome : 'Pagamento avulso')}</span>
-              <span class="pay-meta"> · ${esc(p ? p.papel : '')}${o ? ' · ' + esc(o.nome) : ''}</span><br>
+              <span class="pay-meta"> · ${esc(p ? p.papel : '')}${o ? ' · ' + nomeComCor(o) : ''}</span><br>
               <span class="pay-meta">pix: ${esc(p ? p.pix : 'sem pix anotado')}</span>
             </span>
             ${l.pago
@@ -4972,7 +5080,7 @@ function telaPagamentos() {
           ${f.linhas.map(l => {
             const p = pessoa(l.pessoaId); const o = obra(l.obraId);
             return '<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">' +
-              '<span><b>' + esc(p ? p.nome : 'Pagamento') + '</b>' + (o ? ' <span class="obra-meta">· ' + esc(o.nome) + '</span>' : '') + '</span>' +
+              '<span><b>' + esc(p ? p.nome : 'Pagamento') + '</b>' + (o ? ' <span class="obra-meta">· ' + nomeComCor(o) + '</span>' : '') + '</span>' +
               (l.dias ? '<span class="obra-meta">' + l.dias + ' dia' + (l.dias === 1 ? '' : 's') + '</span>' : '') +
               '<span class="push money">' + moeda(l.valor) + '</span>' +
               (l.pago ? '<span class="pill concluida">pago</span>' : '<span class="pill pausada">ficou em aberto</span>') +
@@ -5113,7 +5221,7 @@ function telaFinanceiro() {
           const o = obra(l.obraId);
           return `<div style="display:flex;gap:12px;align-items:center">
             <span class="obra-meta" style="min-width:48px">${dataBR(l.data).slice(0, 5)}</span>
-            <span style="min-width:0">${esc(l.desc || l.categoria)}<span class="obra-meta"> · ${esc(rotCat(l.categoria))}${o ? ' · ' + esc(o.nome) : ''}</span></span>
+            <span style="min-width:0">${esc(l.desc || l.categoria)}<span class="obra-meta"> · ${esc(rotCat(l.categoria))}${o ? ' · ' + nomeComCor(o) : ''}</span></span>
             <span class="push money ${l.tipo === 'entrada' ? 'in' : 'out'}">${l.tipo === 'entrada' ? '+' : '-'} ${moeda(l.valor)}</span>
             ${btnEd('lancamento', l.id, l.desc)}
           </div>`;
@@ -5349,7 +5457,7 @@ function telaFerramentas() {
     <button class="lugar-card galpao${galpaoAberto ? ' on' : ''}" id="tog-galpao" aria-expanded="${galpaoAberto ? 'true' : 'false'}">
       <span class="n">${noGalpao}</span>
       <span class="txt">
-        <b>Galpão</b>
+        <b>${ICO_LUGAR.galpao}Galpão</b>
         <span class="sub">${noGalpao} de ${totalGeral} paradas aqui · ${qtdEmObra} em obra${emManut ? ' · ' + emManut + ' em manutenção' : ''}</span>
       </span>
       <span class="seta">${galpaoAberto ? '&minus;' : '+'}</span>
@@ -5370,13 +5478,12 @@ function telaFerramentas() {
          lugares. O card continua aparecendo com zero, senão o Jorge não
          tem onde procurar quando alguma coisa quebrar. */
       const emManutItens = state.ferramentas.filter(f => qtdEm(f, 'manutencao') > 0);
-      const resumoManut = emManutItens.length
-        ? emManutItens.map(f => qtdEm(f, 'manutencao') + ' ' + f.item).join(', ')
-        : 'nada parado pra conserto agora';
+      const resumoManut = emManutItens.map(f => qtdEm(f, 'manutencao') + ' ' + f.item).join(', ');
       return '<button class="lugar-card manut' + (manutAberta ? ' on' : '') + (emManut ? '' : ' vazia') + '"' +
         ' id="tog-manut" aria-expanded="' + (manutAberta ? 'true' : 'false') + '">' +
           '<span class="n">' + emManut + '</span>' +
-          '<span class="txt"><b>Em manutenção</b><span class="sub">' + esc(resumoManut) + '</span></span>' +
+          '<span class="txt"><b>' + ICO_LUGAR.manutencao + 'Manutenção</b>' +
+            (resumoManut ? '<span class="sub">' + esc(resumoManut) + '</span>' : '') + '</span>' +
           '<span class="seta">' + (manutAberta ? '&minus;' : '+') + '</span>' +
         '</button>' +
         (manutAberta ? '<div class="lugar-painel">' +
@@ -5393,13 +5500,16 @@ function telaFerramentas() {
       return ativas.map(o => {
         const itens = state.ferramentas.filter(f => qtdEm(f, o.id) > 0);
         const n = itens.reduce((s, f) => s + qtdEm(f, o.id), 0);
-        const resumo = itens.length ? itens.map(f => qtdEm(f, o.id) + ' ' + f.item).join(', ') : 'sem ferramenta nossa aqui';
+        const resumo = itens.map(f => qtdEm(f, o.id) + ' ' + f.item).join(', ');
         const aberta = obraFerSel === o.id;
+        /* Obra sem ferramenta mostra o zero e cala a boca: escrever
+           "sem ferramenta nossa aqui" era barulho, o zero já diz. */
         return '<button class="lugar-card obra' + (aberta ? ' on' : '') + (n ? '' : ' vazia') + '"' +
-          ' data-obra-fer="' + o.id + '" title="' + esc(resumo) + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' +
+          ' data-obra-fer="' + o.id + '" style="--fcor:' + corObra(o) + '"' +
+          (resumo ? ' title="' + esc(resumo) + '"' : '') + ' aria-expanded="' + (aberta ? 'true' : 'false') + '">' +
             '<span class="n">' + n + '</span>' +
             '<span class="txt"><b>' + esc(o.nome) + '</b>' +
-              '<span class="sub">' + (itens.length ? esc(resumo) : 'sem ferramenta nossa aqui') + '</span></span>' +
+              (resumo ? '<span class="sub">' + esc(resumo) + '</span>' : '') + '</span>' +
             '<span class="seta">' + (aberta ? '&minus;' : '+') + '</span>' +
           '</button>' +
           (aberta ? '<div class="lugar-painel">' +
@@ -5417,7 +5527,7 @@ function telaFerramentas() {
         return `<div class="fer-card" style="border-left-color:var(--good)">
           <div class="fer-linha">
             <span style="min-width:0;flex:1"><b>${s.qtd} ${esc(s.un)} de ${esc(s.item)}</b><br>
-            <span class="obra-meta">sobrou ${o ? 'da ' + esc(o.nome) : 'de obra'} em ${dataBR(s.data)}${s.valor ? ' · vale ' + moeda(s.valor) : ''}</span></span>
+            <span class="obra-meta">sobrou ${o ? 'da ' + nomeComCor(o) : 'de obra'} em ${dataBR(s.data)}${s.valor ? ' · vale ' + moeda(s.valor) : ''}</span></span>
             <select data-usar-sobra="${s.id}" aria-label="Usar ${esc(s.item)} em obra">
               <option value="">usar na obra...</option>
               ${state.obras.filter(emObra).map(x => '<option value="' + x.id + '">' + esc(x.nome) + '</option>').join('')}
@@ -5769,6 +5879,10 @@ function ligarEventos() {
       executar('excluirDoc', b.dataset.docDel);
     }));
 
+  /* Do painel pro grupo de fase certo, já aberto */
+  document.querySelectorAll('[data-fase-ir]').forEach(b =>
+    b.addEventListener('click', () => irParaFase(b.dataset.faseIr)));
+
   /* Grupos de fase da obra: recolhem e abrem */
   document.querySelectorAll('[data-grupo]').forEach(b =>
     b.addEventListener('click', () => { grupoAberto[b.dataset.grupo] = !grupoAberto[b.dataset.grupo]; render(); }));
@@ -5911,7 +6025,7 @@ function renderExtrato() {
     return '<div class="conta ' + c.tipo + (vencida ? ' vencida' : '') + '">' +
       '<span class="barra"></span>' +
       '<span class="txt"><b>' + esc(c.desc) + '</b>' +
-        '<span>' + (o ? esc(o.nome) + ' · ' : '') + '<span class="prazo">' + esc(prazoTxt(c.dias)) + '</span>' +
+        '<span>' + (o ? nomeComCor(o) + ' · ' : '') + '<span class="prazo">' + esc(prazoTxt(c.dias)) + '</span>' +
         (c.venc ? ' · ' + dataBR(c.venc) : '') + '</span></span>' +
       '<span class="dir"><span class="money ' + (c.tipo === 'receber' ? 'in' : 'out') + '">' +
         (c.tipo === 'receber' ? '+' : '-') + ' ' + moeda(c.valor) + '</span><br>' +
