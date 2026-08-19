@@ -913,6 +913,20 @@
   .lugar-barra { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 10px; }
   .lugar-barra .busca { flex: 1; min-width: 180px; margin-bottom: 0; }
 
+  /* Botão de duas faces: entrada ou saída, efetuado ou pendente */
+  .seg { display: flex; gap: 8px; }
+  .seg-op {
+    flex: 1; display: flex; align-items: center; justify-content: center; gap: 7px;
+    border: 1.5px solid var(--line); background: var(--card); border-radius: 11px;
+    padding: 10px 12px; font: inherit; font-size: 13.5px; font-weight: 700;
+    color: var(--muted); cursor: pointer; white-space: nowrap;
+    transition: border-color .14s ease, color .14s ease, background .14s ease;
+  }
+  .seg-op svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2.1; flex: none; }
+  .seg-op:hover { border-color: color-mix(in srgb, var(--seg) 45%, var(--line)); }
+  .seg-op.on { border-color: var(--seg); color: var(--seg); background: color-mix(in srgb, var(--seg) 9%, var(--card)); }
+  .seg.min .seg-op { padding: 7px 12px; font-size: 12.5px; flex: none; }
+
   /* Amostras de cor do formulário da obra */
   .cores { display: flex; gap: 8px; flex-wrap: wrap; }
   .cor-op {
@@ -1643,6 +1657,14 @@ function somaMes(prefixo, tipo) {
 }
 /* Os dois lugares que não são obra ganham desenho em vez de só nome:
    um galpão de telhado e uma chave de boca. */
+/* Os desenhos dos botões de duas faces */
+const ICO_SEG = {
+  sobe: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="M5 12l7-7 7 7"/></svg>',
+  desce: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M19 12l-7 7-7-7"/></svg>',
+  feito: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>',
+  espera: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  tudo: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M4 12h16"/><path d="M4 17h16"/></svg>'
+};
 const ICO_LUGAR = {
   galpao: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21V9.6l9-5.6 9 5.6V21"/><path d="M2 21h20"/><path d="M8.5 21v-6.5h7V21"/></svg>',
   manutencao: '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14.6 6.4a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.7-3.7a6 6 0 0 1-7.9 7.9l-6.8 6.8a2.1 2.1 0 0 1-3-3l6.8-6.8a6 6 0 0 1 7.9-7.9l-3.7 3.7z"/></svg>'
@@ -1847,8 +1869,13 @@ const ACOES = {
   editarLancamento(id, d) {
     const l = state.lancamentos.find(x => x.id === id);
     if (!l) return { ok:false, msg:'Lançamento não encontrado.' };
+    /* A criação já barrava valor zero ou negativo; a edição não. Isso
+       deixava salvar menos oito mil e novecentos e o gráfico desenhava
+       barra de largura negativa. Mesma trava dos dois lados. */
+    const valorEd = Number(d.valor) || 0;
+    if (valorEd <= 0) return { ok:false, msg:'O lançamento precisa de um valor maior que zero.' };
     Object.assign(l, {
-      data: d.data || l.data, tipo: d.tipo, valor: Number(d.valor) || 0,
+      data: d.data || l.data, tipo: d.tipo, valor: valorEd,
       categoria: d.categoria, obraId: d.obraId || null, desc: d.desc
     });
     salvar();
@@ -2129,7 +2156,9 @@ const ACOES = {
     const dist = distFer(f);
     const disponivel = qtdEm(f, de);
     if (disponivel <= 0) return { ok:false, msg:'Não tem ' + f.item + ' em ' + nomeLoc(de) + '.' };
-    let n = Number(qtd) || disponivel;
+    let n = Math.floor(Number(qtd));
+    if (!Number.isFinite(n) || n === 0) n = disponivel;
+    if (n < 0) return { ok:false, msg:'A quantidade tem que ser pelo menos 1.' };
     if (n > disponivel) {
       return { ok:false, msg:'Só tem ' + disponivel + ' em ' + nomeLoc(de) + '. Mova até essa quantidade.' };
     }
@@ -2577,6 +2606,13 @@ function acharFerramentaTxt(txt) { return acharEm(state.ferramentas, 'item', txt
 function unicaEmAndamento() {
   const ativas = state.obras.filter(emObra);
   return ativas.length === 1 ? ativas[0] : null;
+}
+/* Irmã da de cima, mas pela régua do trilho: orçamento e crédito agora
+   são posição, e é justamente onde a obra fica parada mais tempo. Sem
+   isso, "avança a fase" não achava a obra recém-criada em orçamento. */
+function unicaNoTrilho() {
+  const noTrilho = state.obras.filter(o => idxFase(o.status) >= 0);
+  return noTrilho.length === 1 ? noTrilho[0] : null;
 }
 /* Todos os números da frase, do jeito brasileiro e tolerante a deslize de
    teclado: "1.350" e "1,350" são mil e trezentos e cinquenta (3 casas =
@@ -3270,7 +3306,12 @@ function secretaria(frase) {
   /* ---- consultas (não mexem em nada) ---- */
   /* "em que fase está a obra da Mirelly" responde a mesma régua que a tela
      mostra, de 0 a 5, e nunca escreve. */
-  if ((/\bfase\b|\btrilho\b/.test(t)) && (soConsulta || /\bqual\b|\bem que fase\b|\bem qual\b/.test(t))) {
+  /* A pergunta tem que ser SOBRE a fase, não só conter a palavra.
+     "quanto gastei na fase de execução" é pergunta de dinheiro, e antes
+     vinha respondida com a posição no trilho. */
+  if ((/\bem que fase\b|\bem qual fase\b|\bqual (a |e a )?fase\b|\bque fase\b|\btrilho\b/.test(t)
+        || (soConsulta && /\bfase (da|de|do|dessa|desta|dela)\b/.test(t)))
+      && !/\bquanto\b|\bgast\w+\b|\bcusto\b|\bcustou\b|\bpagar\b|\bpaguei\b|\brecebi\b|\bdevo\b|\bquem\b|\bcade\b/.test(t)) {
     const oFase = acharObraTxt(t) || (/\btodas\b|\bas obras\b|\bcada\b/.test(t) ? null : unicaEmAndamento());
     if (oFase) {
       const i = idxFase(oFase.status);
@@ -3617,22 +3658,31 @@ function secretaria(frase) {
   }
 
   /* ---- fase da obra ---- */
-  if (!soConsulta && (/\bfase\b/.test(t) || /\b(comecou|comecamos|iniciou|entregamos|entregue)\b/.test(t))) {
-    const o = acharObraTxt(t) || unicaEmAndamento();
+  /* "entregue" sozinho não entra aqui: "o cimento foi entregue na obra
+     da Mirelly" é frase de rotina e mandava a obra inteira pro pós-obra.
+     Só entrega de OBRA conta. */
+  if (!soConsulta && (/\bfase\b/.test(t) || /\b(comecou|comecamos|iniciou)\b/.test(t)
+      || /\bobra entregue\b|\bentreg(amos|uei) (a|essa|esta) obra\b/.test(t))) {
+    const o = acharObraTxt(t) || unicaEmAndamento() || unicaNoTrilho();
     if (o) {
       let fase = null;
-      if (/\b(pos.?obra|entregue|entregamos)\b/.test(t)) fase = 'pós-obra';
-      else if (/\bfinal\b/.test(t)) fase = 'final de obra';
-      else if (/\bexecucao\b/.test(t)) fase = 'execução';
-      else if (/\b(inicio|comecou|comecamos|iniciou)\b/.test(t)) fase = 'início';
-      else if (/\b(credito|aprovacao|analise da caixa)\b/.test(t)) fase = 'aguardando aprovação de crédito';
-      else if (/\borcamento\b/.test(t)) fase = 'orçamento';
-      else if (/\bavanca|proxima fase\b/.test(t)) {
+      /* Ordem importa. "Avança" é ordem explícita e ganha de qualquer
+         nome de fase que apareça só como contexto: em "o crédito saiu,
+         avança a fase", crédito é o motivo, não o destino. Antes disso
+         a obra voltava pra posição 1 com 53% construída. */
+      if (/\bavanca\b|\bavancar\b|proxima fase|fase seguinte/.test(t)) {
         const i = idxFase(o.status);
         if (i < 0) return o.nome + ' está ' + o.status + ', fora do trilho. Reative a obra antes de avançar a fase.';
         if (i >= FASES.length - 1) return o.nome + ' já está no pós-obra, a última posição do trilho.';
         fase = FASES[i + 1];
       }
+      /* Nome de fase dito na letra ganha de verbo genérico */
+      else if (/\borcamento\b/.test(t)) fase = 'orçamento';
+      else if (/\bcredito\b|\baprovacao\b|analise da caixa/.test(t)) fase = 'aguardando aprovação de crédito';
+      else if (/\bpos.?obra\b|\bobra entregue\b|\bentreg(amos|uei) (a|essa|esta) obra\b/.test(t)) fase = 'pós-obra';
+      else if (/\bfinal\b/.test(t)) fase = 'final de obra';
+      else if (/\bexecucao\b/.test(t)) fase = 'execução';
+      else if (/\b(inicio|comecou|comecamos|iniciou)\b/.test(t)) fase = 'início';
       if (fase) return ACOES.definirFase(o.id, fase).msg;
     }
   }
@@ -3993,12 +4043,25 @@ const FORMS = {
   lancamento: {
     titulo: id => id ? 'Editar lançamento' : 'Novo lançamento',
     ler: id => state.lancamentos.find(l => l.id === id),
-    criar: d => ACOES.criarLancamento(d),
+    /* Uma porta só pro dinheiro. Efetuado é dinheiro que já andou e vira
+       lançamento; pendente é dinheiro combinado e vira conta a receber
+       ou a pagar, com a data virando vencimento. Antes eram dois botões
+       em telas diferentes, e o Jorge procurava o pendente aqui. */
+    criar: d => d.status === 'pendente'
+      ? ACOES.criarConta({ tipo: d.tipo === 'entrada' ? 'receber' : 'pagar', valor: d.valor,
+          desc: d.desc || rotCat(d.categoria), venc: d.data, obraId: d.obraId,
+          categoria: d.categoria, parcelas: 1 })
+      : ACOES.criarLancamento(d),
     editar: (id, d) => ACOES.editarLancamento(id, d),
     excluir: id => ACOES.excluirLancamento(id),
     campos: [
-      { k:'tipo',      rot:'Tipo', opcoes:[{v:'entrada',r:'Entrada'},{v:'saída',r:'Saída'}] },
-      { k:'valor',     rot:'Valor (R$)', tipo:'number', step:'any', req:true },
+      { k:'tipo',      rot:'Tipo', tipo:'seg', full:true, opcoes:[
+          {v:'entrada', r:'Entrada', ico:'sobe',  cor:'var(--f-inicio)'},
+          {v:'saída',   r:'Saída',   ico:'desce', cor:'var(--f-execucao)'}] },
+      { k:'status',    rot:'Status', tipo:'seg', full:true, soCriar:true, padrao: () => 'efetuado', opcoes:[
+          {v:'efetuado', r:'Efetuado', ico:'feito',  cor:'var(--f-pos)'},
+          {v:'pendente', r:'Pendente', ico:'espera', cor:'var(--f-final)'}] },
+      { k:'valor',     rot:'Valor (R$)', tipo:'number', step:'any', min:'0.01', req:true },
       { k:'data',      rot:'Data', tipo:'date', padrao: () => hojeISO() },
       { k:'categoria', rot:'Categoria', opcoes: () => opcoesCategorias() },
       { k:'obraId',    rot:'Obra', opcoes: () => opcoesObras(true), full:true },
@@ -4199,6 +4262,19 @@ function abrirForm(nome, id) {
       campo = '<select id="mf-' + c.k + '">' + ops.map(o =>
         '<option value="' + esc(o.v) + '"' + (String(o.v) === String(val) ? ' selected' : '') + '>' + esc(o.r) + '</option>'
       ).join('') + '</select>';
+    } else if (c.tipo === 'seg') {
+      /* Escolha de duas ou três opções vira botão lado a lado em vez de
+         lista: é um toque em vez de três, e o Jorge vê as duas saídas
+         sem precisar abrir nada. */
+      const ops = typeof c.opcoes === 'function' ? c.opcoes() : c.opcoes;
+      const atual = String(val || ops[0].v);
+      campo = '<input type="hidden" id="mf-' + c.k + '" value="' + esc(atual) + '">' +
+        '<span class="seg" role="group" aria-label="' + esc(c.rot) + '">' + ops.map(o =>
+          '<button type="button" class="seg-op' + (String(o.v) === atual ? ' on' : '') + '"' +
+          ' style="--seg:' + (o.cor || 'var(--petrol)') + '" data-seg="' + esc(o.v) + '"' +
+          ' aria-pressed="' + (String(o.v) === atual ? 'true' : 'false') + '">' +
+          (o.ico && ICO_SEG[o.ico] ? ICO_SEG[o.ico] : '') + esc(o.r) + '</button>').join('') +
+        '</span>';
     } else if (c.tipo === 'cor') {
       /* Amostra de cor em vez de seletor do sistema: a paleta é fechada
          de propósito, pra nenhuma obra sair com uma cor que some no
@@ -4223,6 +4299,18 @@ function abrirForm(nome, id) {
   }).join('') + (F.nota ? '<p class="modal-nota full">' + esc(F.nota) + '</p>' : '');
 
   document.getElementById('modal-form').innerHTML = html;
+  /* Os botões de duas faces: clicar troca o marcado, guarda no campo
+     escondido e reavalia os campos que dependem dessa escolha. */
+  document.querySelectorAll('#modal-form [data-seg]').forEach(b => b.addEventListener('click', () => {
+    const caixa = b.closest('.seg');
+    const alvo = caixa.previousElementSibling;
+    if (alvo) alvo.value = b.dataset.seg;
+    caixa.querySelectorAll('.seg-op').forEach(x => {
+      x.classList.toggle('on', x === b);
+      x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+    });
+    aplicarCondicoes();
+  }));
   /* As amostras de cor: clicar troca a marcada e guarda no campo escondido */
   document.querySelectorAll('#modal-form [data-cor]').forEach(b => b.addEventListener('click', () => {
     const caixa = b.closest('.cores');
@@ -5104,6 +5192,7 @@ function telaPagamentos() {
    valor antigo até o novo em vez de trocar de uma vez. */
 let finAnt = null;
 let finChave = '';
+let finTodos = false;        // o financeiro pode sair do mês e ver a história inteira
 function animarFinanceiro() {
   const tiles = document.getElementById('fin-tiles');
   if (!tiles) { finChave = ''; return; }
@@ -5138,7 +5227,11 @@ function animarFinanceiro() {
     const t0 = performance.now(), dur = 560;
     (function passo(t) {
       const k = Math.min(1, (t - t0) / dur);
-      el.textContent = moeda(Math.round(partiu + (alvo - partiu) * (1 - Math.pow(1 - k, 3))));
+      /* Os quadros do meio podem ser inteiros, que é o que dá a sensação
+         de contador. O último tem que ser o valor exato, senão o tile
+         fica parado num número de centavos errado pro resto do dia. */
+      const v = partiu + (alvo - partiu) * (1 - Math.pow(1 - k, 3));
+      el.textContent = moeda(k < 1 ? Math.round(v) : alvo);
       if (k < 1) requestAnimationFrame(passo);
     })(t0);
   });
@@ -5149,14 +5242,14 @@ function telaFinanceiro() {
   if (filtroFinObra !== 'todas' && filtroFinObra !== 'geral' && !obra(filtroFinObra)) filtroFinObra = 'todas';
   /* O mês navega: setas voltam no tempo, "mês atual" traz de volta */
   const mk = mesKey(mesFinDesloc);
-  const tituloMes = nomeMes(mk) + ' de ' + mk.split('-')[0];
+  const tituloMes = finTodos ? 'Todos os meses' : nomeMes(mk) + ' de ' + mk.split('-')[0];
   /* A obra escolhida é o escopo da tela inteira, não só da listinha de
      baixo. Antes os três números vinham do mês todo e não mudavam
      quando o Jorge trocava de obra, o que fazia o filtro parecer
      quebrado. O filtro de tipo continua valendo só pra lista. */
   const noEscopo = l => filtroFinObra === 'todas'
     || (filtroFinObra === 'geral' ? !l.obraId : l.obraId === filtroFinObra);
-  const doMes = state.lancamentos.filter(l => l.data.startsWith(mk) && noEscopo(l));
+  const doMes = state.lancamentos.filter(l => (finTodos || l.data.startsWith(mk)) && noEscopo(l));
   const lancs = ordenarPor('lanc', doMes.filter(l => filtroFin === 'todos' || l.tipo === filtroFin));
   const ent = doMes.filter(l => l.tipo === 'entrada').reduce((a, l) => a + l.valor, 0);
   const sai = doMes.filter(l => l.tipo === 'saída').reduce((a, l) => a + l.valor, 0);
@@ -5182,7 +5275,7 @@ function telaFinanceiro() {
       ${linhas.length ? linhas.map(([c, v]) => `
         <div class="hbar-row ${lado}">
           <span class="hbar-nome">${esc(rotCat(c))}</span>
-          <span class="hbar-track"><i style="width:${Math.round(100 * v / maxCat)}%" data-larg="${Math.round(100 * v / maxCat)}"></i></span>
+          <span class="hbar-track"><i style="width:${Math.max(0, Math.round(100 * v / maxCat))}%" data-larg="${Math.max(0, Math.round(100 * v / maxCat))}"></i></span>
           <span class="hbar-val money">${moeda(v)}</span>
         </div>`).join('') : `<div class="empty">${vazio}</div>`}
     </div>`;
@@ -5195,14 +5288,15 @@ function telaFinanceiro() {
   return `
     <div class="eyebrow" style="margin-top:0">
       <span class="mes-nav">
-        <button class="icon-btn" id="mes-ant" aria-label="Mês anterior">
+        ${finTodos ? '' : `<button class="icon-btn" id="mes-ant" aria-label="Mês anterior">
           <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
+        </button>`}
         <b>${tituloMes}</b>
-        <button class="icon-btn" id="mes-prox" aria-label="Mês seguinte" ${mesFinDesloc >= 0 ? 'disabled style="opacity:.35;cursor:default"' : ''}>
+        ${finTodos ? '' : `<button class="icon-btn" id="mes-prox" aria-label="Mês seguinte" ${mesFinDesloc >= 0 ? 'disabled style="opacity:.35;cursor:default"' : ''}>
           <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-        </button>
-        ${mesFinDesloc !== 0 ? '<button class="btn small" id="mes-hoje">Voltar pro mês atual</button>' : ''}
+        </button>`}
+        <button class="btn small" id="mes-todos">${finTodos ? 'Ver por mês' : 'Todos os meses'}</button>
+        ${!finTodos && mesFinDesloc !== 0 ? '<button class="btn small" id="mes-hoje">Mês atual</button>' : ''}
       </span>
       <span class="push linha-ed">
         <label class="ord"><span class="ord-lab">Obra</span>
@@ -5214,28 +5308,27 @@ function telaFinanceiro() {
         </label>
       </span>
     </div>
-    <div class="tiles" id="fin-tiles" data-chave="${mk}|${filtroFinObra}">
+    <div class="tiles" id="fin-tiles" data-chave="${finTodos ? 'tudo' : mk}|${filtroFinObra}">
       <div class="tile t-good"><div class="k">Entradas</div><div class="v pos" data-conta="${ent}"${de('ent')}>${moeda(ent)}</div><div class="s">${escopoSub}</div></div>
       <div class="tile t-crit"><div class="k">Saídas</div><div class="v neg" data-conta="${sai}"${de('sai')}>${moeda(sai)}</div><div class="s">${escopoSub}</div></div>
       <div class="tile ${ent - sai >= 0 ? 't-petrol' : 't-crit'}"><div class="k">Saldo</div><div class="v ${ent - sai >= 0 ? 'pos' : 'neg'}" data-conta="${ent - sai}"${de('saldo')}>${moeda(ent - sai)}</div><div class="s">${escopoSub}</div></div>
     </div>
 
-    <div class="eyebrow">O dinheiro de ${tituloMes.toLowerCase()}${oEsc ? ' · ' + escopoSub : ''}</div>
-    <div class="grid-2" id="fin-graf">
-      ${quadro('De onde veio', ent, catsEnt, 'ent',
-        'Nada entrou ' + (oEsc ? 'nesta obra' : filtroFinObra === 'geral' ? 'fora das obras' : '') + ' neste mês.')}
-      ${quadro('Para onde foi', sai, cats, 'sai',
-        'Nada saiu ' + (oEsc ? 'nesta obra' : filtroFinObra === 'geral' ? 'fora das obras' : '') + ' neste mês.')}
+    <div class="grid-2" id="fin-graf" style="margin-top:14px">
+      ${quadro('Entradas', ent, catsEnt, 'ent', 'Nada entrou.')}
+      ${quadro('Saídas', sai, cats, 'sai', 'Nada saiu.')}
     </div>
 
     <div class="eyebrow">Movimentações</div>
     <div class="card">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <select id="filtro-fin" aria-label="Filtrar movimentações" style="border:1px solid var(--line);background:var(--card-2);border-radius:9px;padding:7px 11px">
-          <option value="todos" ${filtroFin === 'todos' ? 'selected' : ''}>Tudo</option>
-          <option value="entrada" ${filtroFin === 'entrada' ? 'selected' : ''}>Entradas</option>
-          <option value="saída" ${filtroFin === 'saída' ? 'selected' : ''}>Saídas</option>
-        </select>
+        <span class="seg min" role="group" aria-label="Filtrar movimentações">
+          ${[{v:'todos', r:'Tudo', ico:'tudo', cor:'var(--muted)'},
+             {v:'entrada', r:'Entradas', ico:'sobe', cor:'var(--f-inicio)'},
+             {v:'saída', r:'Saídas', ico:'desce', cor:'var(--f-execucao)'}].map(o =>
+            `<button type="button" class="seg-op${filtroFin === o.v ? ' on' : ''}" style="--seg:${o.cor}"
+               data-filtro-fin="${o.v}" aria-pressed="${filtroFin === o.v ? 'true' : 'false'}">${ICO_SEG[o.ico]}${o.r}</button>`).join('')}
+        </span>
         <span class="push linha-ed">${selOrdem('lanc')}<button class="btn small primary" data-novo="lancamento">+ Novo lançamento</button></span>
       </div>
       <div class="rowlist" style="margin-top:8px">
@@ -5247,7 +5340,7 @@ function telaFinanceiro() {
             <span class="push money ${l.tipo === 'entrada' ? 'in' : 'out'}">${l.tipo === 'entrada' ? '+' : '-'} ${moeda(l.valor)}</span>
             ${btnEd('lancamento', l.id, l.desc)}
           </div>`;
-        }).join('') : '<div class="empty">Nada por aqui com esse filtro.</div>'}
+        }).join('') : '<div class="empty">Nada por aqui.</div>'}
       </div>
     </div>`;
 }
@@ -5421,8 +5514,8 @@ function linhaFerramenta(f, contexto) {
         return '<div class="rem-linha">' +
           '<span class="rem-de"><b>' + n + '</b> em ' + esc(nomeLoc(l)) + '<span class="obra-meta">' + quem + '</span></span>' +
           '<span class="rem-acao">' +
-            '<input type="number" min="1" max="' + n + '" value="' + n + '" id="rq-' + f.id + '-' + l + '" aria-label="Quantidade a mover">' +
-            '<select id="rd-' + f.id + '-' + l + '" aria-label="Destino">' +
+            '<input type="number" min="1" max="' + n + '" value="' + n + '" aria-label="Quantidade a mover">' +
+            '<select aria-label="Destino">' +
               destinos.filter(d => d.v !== l).map(d => '<option value="' + d.v + '">' + esc(d.r) + '</option>').join('') +
             '</select>' +
             '<button class="btn small primary" data-rem="' + f.id + '|' + l + '">Mover</button>' +
@@ -5848,6 +5941,10 @@ function ligarEventos() {
   /* Financeiro */
   const filtro = document.getElementById('filtro-fin');
   if (filtro) filtro.addEventListener('change', () => { filtroFin = filtro.value; render(); });
+  document.querySelectorAll('[data-filtro-fin]').forEach(b =>
+    b.addEventListener('click', () => { filtroFin = b.dataset.filtroFin; render(); }));
+  const btnTodosMeses = document.getElementById('mes-todos');
+  if (btnTodosMeses) btnTodosMeses.addEventListener('click', () => { finTodos = !finTodos; render(); });
   const filtroObra = document.getElementById('filtro-fin-obra');
   if (filtroObra) filtroObra.addEventListener('change', () => { filtroFinObra = filtroObra.value; render(); });
   const mesAnt = document.getElementById('mes-ant');
@@ -5910,7 +6007,12 @@ function ligarEventos() {
     b.addEventListener('click', () => { grupoAberto[b.dataset.grupo] = !grupoAberto[b.dataset.grupo]; render(); }));
   const btnGrupos = document.getElementById('btn-grupos');
   if (btnGrupos) btnGrupos.addEventListener('click', () => {
-    const algumAberto = Object.keys(grupoAberto).some(k => grupoAberto[k]);
+    /* O rótulo do botão só olha as fases que têm obra, então o clique
+       tem que olhar as mesmas. Antes uma fase vazia marcada como aberta
+       fazia o botão dizer "Abrir tudo" e não abrir nada no primeiro
+       toque, porque ele achava que já tinha alguém aberto. */
+    const comObra = k => state.obras.some(o => PILL[o.status] === k);
+    const algumAberto = Object.keys(grupoAberto).some(k => grupoAberto[k] && comObra(k));
     Object.keys(grupoAberto).forEach(k => { grupoAberto[k] = !algumAberto; });
     render();
   });
@@ -5935,11 +6037,19 @@ function ligarEventos() {
       render();
     }));
   /* Mover direto na linha: quantidade e destino já estão ali */
+  /* A mesma ferramenta é desenhada em mais de um lugar ao mesmo tempo
+     (no galpão, no card da manutenção e no card da obra), e todas as
+     cópias saíam com o mesmo id. getElementById devolve a primeira do
+     documento, então o Mover do card da manutenção lia a quantidade e o
+     destino do painel do galpão e mandava a ferramenta pro lugar
+     errado. A resposta é não perguntar ao documento: os campos saem da
+     própria linha em que o dedo bateu. */
   document.querySelectorAll('[data-rem]').forEach(b =>
     b.addEventListener('click', () => {
       const [fid, de] = b.dataset.rem.split('|');
-      const q = document.getElementById('rq-' + fid + '-' + de);
-      const d = document.getElementById('rd-' + fid + '-' + de);
+      const linha = b.closest('.rem-linha');
+      const q = linha && linha.querySelector('input[type="number"]');
+      const d = linha && linha.querySelector('select');
       if (!q || !d) return;
       executar('moverFerramenta', fid, de, d.value, Number(q.value));
     }));
