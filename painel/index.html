@@ -862,6 +862,13 @@
     background: var(--card-2); border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px; color: var(--petrol-ink);
     white-space: nowrap;
   }
+  /* Campo de procura no título da seção */
+  .busca-topo { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; }
+  .busca-topo .busca { margin-bottom: 0; width: min(260px, 46vw); font-size: 13px; padding: 7px 11px; }
+  @media (max-width: 560px) { .busca-topo .busca { width: 100%; } .eyebrow { flex-wrap: wrap; } }
+  /* Lugar que não tem a ferramenta procurada sai da frente */
+  .lugar-card.escondido, .lugar-card.escondido + .lugar-painel { display: none; }
+
   .busca {
     width: 100%; border: 1px solid var(--line); background: var(--card); border-radius: 11px;
     padding: 10px 14px; font-size: 14.5px; margin-bottom: 4px;
@@ -6125,15 +6132,24 @@ function telaFinanceiro() {
   const catsEnt = porCategoria('entrada');
   const cats = porCategoria('saída');
   const maxCat = Math.max(...catsEnt.map(c => c[1]), ...cats.map(c => c[1]), 1);
-  const quadro = (titulo, total, linhas, lado, vazio) => `
-    <div class="card chart-card">
-      <h3>${titulo}<span class="push money ${lado === 'ent' ? 'in' : 'out'}">${moeda(total)}</span></h3>
-      ${linhas.length ? linhas.map(([c, v]) => `
-        <div class="hbar-row ${lado}">
-          <span class="hbar-nome">${esc(rotCat(c))}</span>
-          <span class="hbar-track"><i style="width:${Math.max(0, Math.round(100 * v / maxCat))}%" data-larg="${Math.max(0, Math.round(100 * v / maxCat))}"></i></span>
-          <span class="hbar-val money">${moeda(v)}</span>
-        </div>`).join('') : `<div class="empty">${vazio}</div>`}
+  /* Um quadro só pras duas naturezas. Dois cartões lado a lado pediam
+     o dobro de tela pra dizer a mesma coisa, e ainda obrigavam o olho a
+     comparar entre molduras. Aqui é uma lista, uma régua, um rodapé. */
+  const linhas = catsEnt.map(([c, v]) => ({ c, v, lado: 'ent' }))
+    .concat(cats.map(([c, v]) => ({ c, v, lado: 'sai' })));
+  const quadroCategorias = () => `
+    <div class="card chart-card" id="fin-graf">
+      ${linhas.length ? linhas.map(l => `
+        <div class="hbar-row ${l.lado}">
+          <span class="hbar-nome">${esc(rotCat(l.c))}</span>
+          <span class="hbar-track"><i style="width:${Math.max(0, Math.round(100 * l.v / maxCat))}%" data-larg="${Math.max(0, Math.round(100 * l.v / maxCat))}"></i></span>
+          <span class="hbar-val money ${l.lado === 'ent' ? 'in' : 'out'}">${l.lado === 'ent' ? '+' : '-'} ${moeda(l.v)}</span>
+        </div>`).join('') : '<div class="empty">Nada lançado neste período.</div>'}
+      <div class="torres-pe" style="margin-top:10px">
+        <div><span>Entrou</span><b class="money in">${moeda(ent)}</b></div>
+        <div><span>Saiu</span><b class="money out">${moeda(sai)}</b></div>
+        <div><span>Sobrou</span><b class="money ${ent - sai >= 0 ? 'in' : 'out'}">${moeda(ent - sai)}</b></div>
+      </div>
     </div>`;
 
   /* Guarda o que estava na tela antes pra o número subir de lá até aqui */
@@ -6170,15 +6186,13 @@ function telaFinanceiro() {
       <div class="tile ${ent - sai >= 0 ? 't-petrol' : 't-crit'}"><div class="k">Saldo</div><div class="v ${ent - sai >= 0 ? 'pos' : 'neg'}" data-conta="${ent - sai}"${de('saldo')}>${moeda(ent - sai)}</div><div class="s">${escopoSub}</div></div>
     </div>
 
-    <div class="grid-2" id="fin-graf" style="margin-top:14px">
-      ${quadro('Entradas', ent, catsEnt, 'ent', 'Nada entrou.')}
-      ${quadro('Saídas', sai, cats, 'sai', 'Nada saiu.')}
-    </div>
-
-    <div class="eyebrow">Mês a mês</div>
+    <div class="eyebrow" style="margin-top:16px">Mês a mês</div>
     <div class="card chart-card">
       ${svgTorres(mesesAtras(finTodos ? 12 : 6, finTodos ? 0 : mesFinDesloc), noEscopo)}
     </div>
+
+    <div class="eyebrow">Por categoria</div>
+    ${quadroCategorias()}
 
     <div class="eyebrow">Movimentações</div>
     <div class="card">
@@ -6408,42 +6422,60 @@ function linhaFerramenta(f, contexto) {
 /* A área é das FERRAMENTAS, e o galpão é um dos lugares onde elas
    estão. Em cima o galpão com o catálogo inteiro, embaixo as obras. */
 function telaFerramentas() {
+  /* A busca deixou de filtrar só a lista de dentro do galpão e passou a
+     valer pra tela inteira. Procurando "martelete", o Jorge vê onde ele
+     está e quantos tem em cada lugar, e os números de cima passam a
+     falar do martelete, não do galpão inteiro. É a pergunta que ele faz
+     no canteiro: "cadê o martelete?" */
   const busca = normTxt(buscaFer);
   const bate = f => !busca || normTxt(f.item + ' ' + (f.cod || '')).includes(busca);
-  const lista = ordenarPor('fer', state.ferramentas.filter(bate));
-  const totalGeral = state.ferramentas.reduce((s, f) => s + totalFer(f), 0);
-  const noGalpao = qtdTotalEm('galpao');
-  const qtdEmObra = qtdForaDoGalpao();
-  const emManut = qtdTotalEm('manutencao');
+  const achadas = state.ferramentas.filter(bate);
+  const lista = ordenarPor('fer', achadas);
+  /* Com busca, tudo daqui pra baixo conta só o que foi achado */
+  const conjunto = busca ? achadas : state.ferramentas;
+  const somaEm = local => conjunto.reduce((s, f) => s + qtdEm(f, local), 0);
+  const totalGeral = conjunto.reduce((s, f) => s + totalFer(f), 0);
+  const noGalpao = somaEm('galpao');
+  const qtdEmObra = conjunto.reduce((s, f) =>
+    s + locaisDe(f).filter(l => l !== 'galpao' && l !== 'manutencao').reduce((x, l) => x + qtdEm(f, l), 0), 0);
+  const emManut = somaEm('manutencao');
   const valorSobras = state.sobras.reduce((s, x) => s + x.valor, 0);
   const obrasComFer = {};
-  state.ferramentas.forEach(f => locaisDe(f).forEach(l => {
+  conjunto.forEach(f => locaisDe(f).forEach(l => {
     if (l !== 'galpao' && l !== 'manutencao') obrasComFer[l] = (obrasComFer[l] || 0) + qtdEm(f, l);
   }));
 
   return `
     <div class="tiles">
-      <div class="tile t-accent"><div class="k">Ferramentas</div><div class="v">${totalGeral}</div><div class="s">${state.ferramentas.length} tipo${state.ferramentas.length === 1 ? '' : 's'} de item</div></div>
+      <div class="tile t-accent"><div class="k">${busca ? esc(buscaFer.trim()) : 'Ferramentas'}</div><div class="v">${totalGeral}</div><div class="s">${busca ? achadas.length + ' tipo' + (achadas.length === 1 ? '' : 's') + ' com esse nome' : state.ferramentas.length + ' tipo' + (state.ferramentas.length === 1 ? '' : 's') + ' de item'}</div></div>
       <div class="tile t-petrol"><div class="k">No galpão</div><div class="v">${noGalpao}</div><div class="s">paradas, abaixo da clínica</div></div>
       <div class="tile"><div class="k">Em obra</div><div class="v">${qtdEmObra}</div><div class="s">${Object.keys(obrasComFer).length} obra${Object.keys(obrasComFer).length === 1 ? '' : 's'} com ferramenta nossa</div></div>
-      <div class="tile ${emManut ? 't-crit' : ''}"><div class="k">Em manutenção</div><div class="v">${emManut}</div><div class="s">${emManut ? esc(state.ferramentas.filter(f => qtdEm(f, 'manutencao') > 0).map(f => f.item).join(', ')) : 'nada parado pra conserto'}</div></div>
+      <div class="tile ${emManut ? 't-crit' : ''}"><div class="k">Em manutenção</div><div class="v">${emManut}</div><div class="s">${emManut ? esc(conjunto.filter(f => qtdEm(f, 'manutencao') > 0).map(f => f.item).join(', ')) : 'nada parado pra conserto'}</div></div>
     </div>
 
-    <div class="eyebrow">Onde estão as ferramentas</div>
+    <div class="eyebrow">Onde estão as ferramentas
+      <span class="push busca-topo">
+        <input id="busca-fer" class="busca" placeholder="Procurar: martelete, escora, #2002..."
+          value="${esc(buscaFer)}" aria-label="Procurar ferramenta">
+        ${busca ? '<button class="btn small" id="limpa-busca">Limpar</button>' : ''}
+      </span>
+    </div>
+    ${busca && !achadas.length ? '<div class="card empty">Nenhuma ferramenta com esse nome.</div>' : ''}
+    ${busca && achadas.length ? '<p class="obra-meta" style="margin:-4px 0 10px">Mostrando só onde tem ' +
+      esc(achadas.map(f => f.item).join(', ')) + '.</p>' : ''}
 
-    <button class="lugar-card galpao${galpaoAberto ? ' on' : ''}" id="tog-galpao" aria-expanded="${galpaoAberto ? 'true' : 'false'}">
+    <button class="lugar-card galpao${galpaoAberto ? ' on' : ''}${busca && !noGalpao ? ' escondido' : ''}" id="tog-galpao" aria-expanded="${galpaoAberto ? 'true' : 'false'}">
       <span class="n">${noGalpao}</span>
       <span class="txt">
         <b>${ICO_LUGAR.galpao}Galpão</b>
-        <span class="sub">${noGalpao} de ${totalGeral} paradas aqui · ${qtdEmObra} em obra${emManut ? ' · ' + emManut + ' em manutenção' : ''}</span>
+        <span class="sub">${noGalpao} de ${totalGeral} ${busca ? 'aqui' : 'paradas aqui'} · ${qtdEmObra} em obra${emManut ? ' · ' + emManut + ' em manutenção' : ''}</span>
       </span>
       <span class="seta">${galpaoAberto ? '&minus;' : '+'}</span>
     </button>
 
     ${galpaoAberto ? `<div class="lugar-painel" id="painel-galpao">
       <div class="lugar-barra">
-        <input id="busca-fer" class="busca" placeholder="Buscar por nome ou etiqueta: escora, #2002..." value="${esc(buscaFer)}" aria-label="Buscar ferramenta">
-        <span class="linha-ed">${selOrdem('fer')}<button class="btn small primary" data-novo="ferramenta">+ Nova</button></span>
+        <span class="linha-ed push">${selOrdem('fer')}<button class="btn small primary" data-novo="ferramenta">+ Nova</button></span>
       </div>
       ${lista.length ? `<div class="fer-lista">
         ${lista.map(f => linhaFerramenta(f)).join('')}
@@ -6454,9 +6486,10 @@ function telaFerramentas() {
       /* Manutenção é um lugar como o galpão, e por isso fica na lista de
          lugares. O card continua aparecendo com zero, senão o Jorge não
          tem onde procurar quando alguma coisa quebrar. */
-      const emManutItens = state.ferramentas.filter(f => qtdEm(f, 'manutencao') > 0);
+      const emManutItens = conjunto.filter(f => qtdEm(f, 'manutencao') > 0);
       const resumoManut = emManutItens.map(f => qtdEm(f, 'manutencao') + ' ' + f.item).join(', ');
-      return '<button class="lugar-card manut' + (manutAberta ? ' on' : '') + (emManut ? '' : ' vazia') + '"' +
+      return '<button class="lugar-card manut' + (manutAberta ? ' on' : '') + (emManut ? '' : ' vazia') +
+        (busca && !emManut ? ' escondido' : '') + '"' +
         ' id="tog-manut" aria-expanded="' + (manutAberta ? 'true' : 'false') + '">' +
           '<span class="n">' + emManut + '</span>' +
           '<span class="txt"><b>' + ICO_LUGAR.manutencao + 'Manutenção</b>' +
@@ -6475,8 +6508,10 @@ function telaFerramentas() {
       if (!ativas.length) return '<div class="card empty" style="margin-top:10px">Nenhuma obra em andamento. Ferramenta só sai do galpão pra obra que está na rua.</div>';
       /* Cada obra é um card igual ao do galpão: clica e desce a lista */
       return ativas.map(o => {
-        const itens = state.ferramentas.filter(f => qtdEm(f, o.id) > 0);
+        const itens = conjunto.filter(f => qtdEm(f, o.id) > 0);
         const n = itens.reduce((s, f) => s + qtdEm(f, o.id), 0);
+        /* Procurando alguma coisa, obra sem ela não interessa */
+        if (busca && !n) return '';
         const resumo = itens.map(f => qtdEm(f, o.id) + ' ' + f.item).join(', ');
         const aberta = obraFerSel === o.id;
         /* Obra sem ferramenta mostra o zero e cala a boca: escrever
@@ -6665,6 +6700,8 @@ function ligarEventos() {
     b.addEventListener('click', () => executar('converterLead', b.dataset.fechou)));
 
   /* Busca do galpão pela etiqueta */
+  const limpaB = document.getElementById('limpa-busca');
+  if (limpaB) limpaB.addEventListener('click', () => { buscaFer = ''; render(); });
   const buscaEl = document.getElementById('busca-fer');
   if (buscaEl) {
     buscaEl.addEventListener('input', () => { buscaFer = buscaEl.value; galpaoFoco = true; render(); });
