@@ -4928,9 +4928,10 @@ let ferSel = null;           // ferramenta aberta pra remanejar
 let obraFerSel = null;       // obra aberta na lista de chips
 let galpaoAberto = true;     // o galpão recolhe igual às obras
 let manutAberta = false;     // manutenção é um lugar, e recolhe também
-/* Quais grupos de obra começam abertos. As fases que estão na rua sim,
-   o resto fechado, pra tela abrir calma. */
-let grupoAberto = { orcamento:false, credito:false, inicio:true, execucao:true, final:true, pos:false, pausada:false, concluida:false };
+/* Obras abre com tudo recolhido. O Jorge chega na tela pra ver a régua
+   inteira de um relance, e abre só a fase que ele quer olhar. Antes as
+   fases da rua vinham abertas e a tela já nascia comprida. */
+let grupoAberto = { orcamento:false, credito:false, inicio:false, execucao:false, final:false, pos:false, pausada:false, concluida:false };
 let buscaFer = '';           // busca por nome ou código no galpão
 let galpaoFoco = false;
 
@@ -5224,6 +5225,7 @@ function telaPainel() {
   if (restoCat > 0) catsTop.push({ rot: 'Outros', v: restoCat, cor: CORES_CAT[4] });
 
   return `
+    ${cartaoSecretaria()}
     <div class="versiculo">
       <span class="marca">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4.5h6a3 3 0 0 1 3 3v12a2.5 2.5 0 0 0-2.5-2.5H4z"/><path d="M20 4.5h-6a3 3 0 0 0-3 3v12a2.5 2.5 0 0 1 2.5-2.5H20z"/></svg>
@@ -5232,9 +5234,6 @@ function telaPainel() {
       <span class="data">${esc(dataHoje)}</span>
     </div>
 
-    </div>
-
-    ${cartaoSecretaria()}
     ${barraPeriodo()}
     <div class="tiles">
       <button class="tile t-accent clicavel" data-fase-ir="execucao" title="Ver as obras em execução"><div class="k">Em execução</div><div class="v">${emExecucao.length}</div><div class="s">${moeda(contratado)} contratados</div></button>
