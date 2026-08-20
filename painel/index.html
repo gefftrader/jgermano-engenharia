@@ -863,7 +863,21 @@
     white-space: nowrap;
   }
   /* Campo de procura no título da seção */
-  .busca-topo { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; }
+  .busca-topo { display: flex; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-weight: 400; }
+  /* Cadastrar fica no fim da lista, que é onde o olho chega depois de
+     procurar e não achar. Antes era uma barra solta no alto do painel,
+     brigando com o cabeçalho do galpão logo acima. */
+  .fer-nova {
+    display: flex; align-items: center; gap: 9px; width: 100%; padding: 13px 16px;
+    background: none; border: none; border-top: 1px solid var(--line-2); cursor: pointer;
+    font: inherit; font-size: 13.5px; font-weight: 600; color: var(--petrol-ink); text-align: left;
+  }
+  .fer-nova:hover { background: var(--line-2); }
+  .fer-nova .mais {
+    width: 24px; height: 24px; border-radius: 8px; flex: none; display: flex;
+    align-items: center; justify-content: center; font-size: 16px; font-weight: 700;
+    background: var(--petrol-soft); color: var(--petrol-ink);
+  }
   .busca-topo .busca { margin-bottom: 0; width: min(260px, 46vw); font-size: 13px; padding: 7px 11px; }
   @media (max-width: 560px) { .busca-topo .busca { width: 100%; } .eyebrow { flex-wrap: wrap; } }
   /* Lugar que não tem a ferramenta procurada sai da frente */
@@ -6457,7 +6471,7 @@ function telaFerramentas() {
       <span class="push busca-topo">
         <input id="busca-fer" class="busca" placeholder="Procurar: martelete, escora, #2002..."
           value="${esc(buscaFer)}" aria-label="Procurar ferramenta">
-        ${busca ? '<button class="btn small" id="limpa-busca">Limpar</button>' : ''}
+        ${busca ? '<button class="btn small" id="limpa-busca">Limpar</button>' : selOrdem('fer')}
       </span>
     </div>
     ${busca && !achadas.length ? '<div class="card empty">Nenhuma ferramenta com esse nome.</div>' : ''}
@@ -6474,11 +6488,11 @@ function telaFerramentas() {
     </button>
 
     ${galpaoAberto ? `<div class="lugar-painel" id="painel-galpao">
-      <div class="lugar-barra">
-        <span class="linha-ed push">${selOrdem('fer')}<button class="btn small primary" data-novo="ferramenta">+ Nova</button></span>
-      </div>
       ${lista.length ? `<div class="fer-lista">
         ${lista.map(f => linhaFerramenta(f)).join('')}
+        <button class="fer-nova" data-novo="ferramenta">
+          <span class="mais">+</span> Nova ferramenta
+        </button>
       </div>` : `<div class="card empty">${busca ? 'Nada com essa busca.' : 'Nenhuma ferramenta cadastrada. Comece pelas caras: betoneira, andaime, escora, martelete.'}</div>`}
     </div>` : ''}
 
