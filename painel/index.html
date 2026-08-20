@@ -63,8 +63,12 @@
     --f-pausada:   #6D4E75;
     --f-concluida: #56595F;
 
-    --shadow: 0 1px 2px rgba(34,37,42,.05), 0 4px 14px rgba(34,37,42,.05);
-    --shadow-lg: 0 2px 6px rgba(34,37,42,.06), 0 18px 42px rgba(34,37,42,.10);
+    /* Padrão dos sistemas da casa: mesmo raio, mesma sombra fina, mesma
+       família de fonte. A paleta continua sendo a da JGermano. */
+    --raio: 10px;
+    --raio-lg: 16px;
+    --shadow: 0 1px 2px rgba(43,36,32,.04);
+    --shadow-lg: 0 2px 6px rgba(43,36,32,.06), 0 18px 42px rgba(43,36,32,.10);
     --rail-w: 244px;
   }
   :root[data-theme="dark"] {
@@ -120,8 +124,8 @@
        família mais próxima disponível, com o mesmo aperto de espaçamento */
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display",
       "Helvetica Neue", Helvetica, "Segoe UI", Roboto, Arial, sans-serif;
-    font-size: 15px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.55;
     letter-spacing: -.011em;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
@@ -186,7 +190,8 @@
     border-bottom: 1px solid var(--line);
     padding: 14px 28px; display: flex; align-items: center; gap: 14px;
   }
-  .topbar h1 { margin: 0; font-size: 20px; letter-spacing: -.015em; font-weight: 800; min-width: 0;
+  h1, h2, h3 { font-weight: 600; letter-spacing: -.015em; }
+  .topbar h1 { margin: 0; font-size: 17px; letter-spacing: -.015em; font-weight: 600; min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* ===================================================================
@@ -290,7 +295,7 @@
      =================================================================== */
   .versiculo {
     display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
     border-left: 3px solid var(--petrol); padding: 14px 18px; box-shadow: var(--shadow);
   }
   .versiculo .marca { flex: none; color: var(--petrol); opacity: .55; }
@@ -314,7 +319,7 @@
     text-transform: uppercase; color: var(--muted);
   }
   .anel-bloco { display: flex; flex-direction: column; align-items: center; gap: 13px; margin-top: 8px; }
-  .anel-v { font-size: 22px; font-weight: 800; fill: var(--ink); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  .anel-v { font-size: 22px; font-weight: 600; fill: var(--ink); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
   .anel-r { font-size: 9.5px; font-weight: 800; fill: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
   /* A fatia cresce da estaca zero quando a tela desenha, e engorda no toque */
   @keyframes anel-cresce { from { stroke-dasharray: 0 9999; } }
@@ -399,33 +404,39 @@
   @media (max-width: 1100px) { .nav-topo { display: none; } }
   @media (max-width: 620px) { .marca-topo span { display: none; } }
 
+  /* Título de seção em caixa baixa, do jeito dos outros painéis: caixa
+     alta com espaçamento largo grita, e quem tem que gritar é o número. */
   .eyebrow {
-    font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase;
-    color: var(--muted); margin: 26px 0 10px; display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 600; letter-spacing: -.01em; text-transform: none;
+    color: var(--ink-2); margin: 22px 0 10px; display: flex; align-items: center; gap: 10px;
   }
   .eyebrow:first-child { margin-top: 0; }
   .eyebrow .push { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 12.5px; }
   .card {
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
     box-shadow: var(--shadow); padding: 16px 18px;
   }
 
   /* mosaico de números do painel */
   .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 12px; }
+  /* KPI no formato dos outros painéis: cartão liso, sem tarja lateral,
+     rótulo em caixa baixa e o número grande carregando a cor. Quem dá a
+     informação é o número, não a moldura. */
   .tile {
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
-    padding: 15px 17px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
+    padding: 16px; box-shadow: var(--shadow); position: relative; overflow: hidden;
   }
-  .tile::before {
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--line);
+  .tile .k { font-size: 13px; font-weight: 500; color: var(--ink-2); letter-spacing: 0; text-transform: none; }
+  .tile .v {
+    font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums;
+    margin-top: 6px; letter-spacing: -.015em; line-height: 1.1;
   }
-  .tile.t-accent::before { background: var(--accent); }
-  .tile.t-petrol::before { background: var(--petrol); }
-  .tile.t-good::before   { background: var(--good); }
-  .tile.t-crit::before   { background: var(--crit); }
-  .tile .k { font-size: 10.5px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; color: var(--muted); }
-  .tile .v { font-size: 27px; font-weight: 800; font-variant-numeric: tabular-nums; margin-top: 3px; letter-spacing: -.02em; line-height: 1.15; }
-  .tile .s { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+  .tile .s { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  /* A cor vem do assunto do cartão, não de uma barrinha na borda */
+  .tile.t-accent .v { color: var(--accent-ink); }
+  .tile.t-petrol .v { color: var(--petrol-ink); }
+  .tile.t-good .v   { color: var(--good); }
+  .tile.t-crit .v   { color: var(--crit); }
   .v.pos { color: var(--good); }
   .v.neg { color: var(--crit); }
 
@@ -439,7 +450,7 @@
   .secretaria {
     display: flex; gap: 10px; align-items: center;
     background: var(--card); border: 1px solid var(--line);
-    border-radius: 14px; padding: 12px 14px; margin-bottom: 6px; box-shadow: var(--shadow);
+    border-radius: var(--raio-lg); padding: 12px 14px; margin-bottom: 6px; box-shadow: var(--shadow);
   }
   .secretaria input { flex: 1; border: none; background: transparent; color: var(--ink); min-width: 0; }
   .secretaria input::placeholder { color: var(--petrol-ink); opacity: .85; }
@@ -518,7 +529,7 @@
   .extrato-pe { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 14px; }
   .pe-caixa { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
   .pe-rot { font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); }
-  .pe-v { font-size: 21px; font-weight: 800; letter-spacing: -.03em; text-align: right; }
+  .pe-v { font-size: 22px; font-weight: 600; letter-spacing: -.03em; text-align: right; }
   .pe-sub { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
   .pe-atraso {
     display: flex; align-items: center; gap: 8px; margin-top: 12px;
@@ -586,7 +597,7 @@
     display: flex; gap: 8px 22px; flex-wrap: wrap; align-items: baseline;
     font-size: 13px; color: var(--muted); padding: 12px 17px;
   }
-  .strip b { color: var(--ink); font-variant-numeric: tabular-nums; font-size: 15px; }
+  .strip b { color: var(--ink); font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; }
   /* Número que leva a algum lugar: sublinhado discreto, sem virar botão gritante */
   .strip .lig {
     background: none; border: none; padding: 0; font: inherit; color: inherit; cursor: pointer;
@@ -607,7 +618,7 @@
   @media (max-width: 560px) { .ord-lab { display: none; } .ord select { max-width: 132px; } }
 
   /* Fornecedor: cartão próprio, longe da tabela de diárias */
-  .forn-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; box-shadow: var(--shadow); border-left: 4px solid var(--petrol); }
+  .forn-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg); padding: 14px 16px; box-shadow: var(--shadow); border-left: 4px solid var(--petrol); }
   .forn-topo { display: flex; align-items: center; gap: 12px; }
   .forn-topo .dir { text-align: right; flex: none; }
   .forn-ico {
@@ -715,7 +726,7 @@
 
   .obra-card {
     display: flex; align-items: center; gap: 14px; cursor: pointer;
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
     padding: 15px 17px; width: 100%; text-align: left; box-shadow: var(--shadow);
     transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease;
   }
@@ -857,7 +868,7 @@
   /* ===================================================================
      GALPÃO
      =================================================================== */
-  .fer-card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px;
+  .fer-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg); padding: 14px 16px;
     box-shadow: var(--shadow); border-left: 4px solid var(--accent); }
   .fer-card.atencao { border-left-color: var(--crit); }
   /* Título de seção que recolhe. O texto vira botão sem parecer botão. */
@@ -877,7 +888,7 @@
 
   /* Lista de ferramentas: uma linha por item, que abre pra remanejar */
   .fer-lista {
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
     box-shadow: var(--shadow); overflow: hidden;
   }
   .fer-item { border-bottom: 1px solid var(--line-2); }
@@ -926,7 +937,7 @@
   /* Card de lugar (galpão e cada obra): clica e desce a lista */
   .lugar-card {
     display: flex; align-items: center; gap: 13px; width: 100%; cursor: pointer;
-    background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+    background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
     padding: 14px 16px; box-shadow: var(--shadow); color: var(--ink);
     text-align: left; margin-top: 10px; border-left: 4px solid var(--accent);
     transition: border-color .14s ease, box-shadow .14s ease;
@@ -1174,14 +1185,14 @@
 
   <div class="content">
     <header class="topbar">
-      <button class="marca-topo" id="ir-inicio" title="Voltar pro painel" aria-label="Voltar pro painel">
+      <button class="marca-topo" id="ir-inicio" title="Voltar pro início" aria-label="Voltar pro início">
         <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
           <path d="M19 2 L28 5 L28 23 Q28 30 20.5 30 L11 30 Q4 30 4 23 L4 19 L11.5 19 L11.5 21.5 Q11.5 24 14 24 L17 24 Q19 24 19 21.5 Z" fill="#E8632A"/>
         </svg>
         <span><b>JGERMANO</b><i>ENGENHARIA</i></span>
       </button>
       <nav class="nav-topo" id="nav-topo" aria-label="Seções"></nav>
-      <h1 id="titulo-tela">Painel</h1>
+      <h1 id="titulo-tela">Início</h1>
       <button class="icon-btn" id="btn-tema-topo" style="margin-left:auto;flex:none" title="Tema claro ou escuro" aria-label="Alternar tema claro e escuro"></button>
       <button class="icon-btn" id="btn-ajuda" style="flex:none" title="Ajuda e backup" aria-label="Ajuda e backup" aria-haspopup="dialog">
         <svg width="16" height="16" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M9.2 9.4a2.8 2.8 0 1 1 3.9 2.8c-.8.35-1.1.9-1.1 1.8"/><path d="M12 17.2h.01"/></svg>
@@ -4729,7 +4740,7 @@ function lerForm() {
    devolver a linha aqui. Enquanto isso o orçamento dá conta: obra em
    fase 0 é cliente que ainda não fechou. */
 const ABAS = [
-  { id:'painel',      rot:'Painel',             curto:'Painel',   ico:'painel' },
+  { id:'painel',      rot:'Início',             curto:'Início',   ico:'painel' },
   { id:'obras',       rot:'Obras',              curto:'Obras',    ico:'obras' },
   { id:'pagamentos',  rot:'Pagamentos',         curto:'Folha',    ico:'pagamentos' },
   { id:'financeiro',  rot:'Financeiro',         curto:'Finanças', ico:'financeiro' },
@@ -4818,7 +4829,7 @@ function renderNav() {
 
   const aba = ABAS.find(a => a.id === abaAtual);
   const o = obraAberta ? obra(obraAberta) : null;
-  document.getElementById('titulo-tela').textContent = o ? o.nome : (aba ? aba.rot : 'Painel');
+  document.getElementById('titulo-tela').textContent = o ? o.nome : (aba ? aba.rot : 'Início');
 }
 
 /* ================= Alertas ================= */
