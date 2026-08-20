@@ -174,6 +174,8 @@
   .rail-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--line-2); }
   .rail-foot .linha { display: flex; align-items: center; gap: 8px; }
   .rail-foot .zin { font-size: 11.5px; color: var(--muted); line-height: 1.35; margin-top: 8px; }
+  .zin-link { background: none; border: none; padding: 0; font: inherit; color: var(--petrol-ink);
+    cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
   .icon-btn {
     border: 1px solid var(--line); background: var(--card); border-radius: 8px;
     width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
@@ -293,18 +295,20 @@
   /* ===================================================================
      VERSÍCULO DO DIA
      =================================================================== */
+  /* A frase do dia no padrão da casa: faixa bege sem moldura, texto em
+     itálico, do jeito do "frase-chip" dos outros sistemas. */
   .versiculo {
-    display: flex; align-items: flex-start; gap: 14px; margin-bottom: 14px;
-    background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
-    border-left: 3px solid var(--petrol); padding: 14px 18px; box-shadow: var(--shadow);
+    display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;
+    background: var(--warn-soft); border: none; border-radius: 12px;
+    padding: 11px 15px; box-shadow: none;
   }
-  .versiculo .marca { flex: none; color: var(--petrol); opacity: .55; }
-  .versiculo p { margin: 0; font-size: 15px; line-height: 1.45; font-style: italic; color: var(--ink-2); }
-  .versiculo cite { display: block; font-style: normal; font-size: 11.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--petrol-ink); margin-top: 6px; }
-  .versiculo .data { margin-left: auto; flex: none; font-size: 12px; color: var(--muted); white-space: nowrap; padding-top: 2px; }
+  .versiculo .marca { display: none; }
+  .versiculo p { margin: 0; font-size: 13.5px; line-height: 1.5; font-style: italic; color: var(--ink-2); }
+  .versiculo cite { display: inline; font-style: normal; font-size: 12px; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--warn); margin-left: 6px; }
+  .versiculo .data { margin-left: auto; flex: none; font-size: 11.5px; color: var(--muted); white-space: nowrap; padding-top: 1px; }
   @media (max-width: 700px) {
-    .versiculo { gap: 11px; padding: 13px 15px; }
-    .versiculo p { font-size: 14px; }
+    .versiculo { padding: 10px 13px; }
+    .versiculo p { font-size: 13px; }
     .versiculo .data { display: none; }
   }
 
@@ -343,7 +347,10 @@
   }
   main { padding: 22px 28px 60px; max-width: 1180px; width: 100%; }
 
-  .tabbar { display: none; }
+  /* O rodapé é sempre escuro, claro ou não. É a âncora visual do
+     sistema: muda o que está dentro, nunca a barra. */
+  .tabbar {
+    --nav-bg: #241F1B; --nav-txt: #F3EFEA; --nav-mudo: #A79C90; display: none; }
 
   @media (max-width: 900px) {
     .shell { flex-direction: column; }
@@ -353,18 +360,19 @@
     main { padding: 16px 16px calc(84px + env(safe-area-inset-bottom)); }
     .tabbar {
       display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
-      background: var(--card); border-top: 1px solid var(--line);
+      background: var(--nav-bg); border-top: none;
       padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
     }
     .tabbar button {
       flex: 1; background: none; border: none; cursor: pointer;
       display: flex; flex-direction: column; align-items: center; gap: 3px;
-      padding: 5px 1px; color: var(--muted); font-size: 10px; font-weight: 600;
+      padding: 5px 1px; color: var(--nav-mudo); font-size: 10px; font-weight: 600;
       position: relative; letter-spacing: -.01em; min-width: 0;
     }
     .tabbar button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tabbar button svg { stroke: currentColor; fill: none; stroke-width: 1.7; }
-    .tabbar button.on { color: var(--accent-ink); }
+    .tabbar button.on { color: var(--nav-txt); }
+    .tabbar button.on svg { color: var(--accent); }
     .tabbar button .badge {
       position: absolute; top: 1px; right: 50%; margin-right: -18px;
       background: var(--crit); color: var(--on-crit); font-size: 9.5px; font-weight: 700;
@@ -406,6 +414,102 @@
 
   /* Título de seção em caixa baixa, do jeito dos outros painéis: caixa
      alta com espaçamento largo grita, e quem tem que gritar é o número. */
+  /* Cartão da secretária: a luz verde diz que tem alguém sentado ali.
+     Mesmo desenho dos outros sistemas da casa. */
+  .secre {
+    display: flex; align-items: center; gap: 10px; background: var(--card);
+    border: 1px solid var(--line); border-radius: 12px; padding: 10px 13px; margin-bottom: 12px;
+  }
+  .secre-luz { width: 9px; height: 9px; border-radius: 50%; background: var(--good); flex: none; }
+  .secre-txt { flex: 1; min-width: 0; }
+  .secre-txt b { display: block; font-size: 13px; font-weight: 600; }
+  .secre-txt span { font-size: 11.5px; color: var(--ink-2); }
+  .secre-btn {
+    flex: none; font-size: 12px; padding: 6px 12px; border-radius: 20px;
+    border: 1px solid var(--line); background: var(--card-2); color: var(--ink); cursor: pointer; font: inherit;
+  }
+  .secre-mon { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 4px; font-size: 10.5px; color: var(--ink-2); }
+  .secre-mon i { font-style: normal; display: inline-flex; align-items: center; gap: 4px; }
+  .secre-mon i::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); display: inline-block; flex: none; }
+  .secre-mon i.mon-ok::before { background: var(--good); }
+  .secre-mon i.mon-erro::before { background: var(--crit); }
+  .secre.fora-do-ar { background: var(--crit-soft); border-color: var(--crit); }
+  .secre.fora-do-ar .secre-luz { background: var(--crit); }
+  .secre.fora-do-ar .secre-txt b { color: var(--crit); }
+
+  /* Barra de período: as setas andam de mês em mês e o centro abre a
+     lista com os meses e o ano inteiro. */
+  .periodo-barra { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 0 0 14px; }
+  .periodo-nav {
+    width: 34px; height: 34px; flex: none; border-radius: 50%; border: 1px solid var(--line);
+    background: var(--card); color: var(--ink); font-size: 17px; line-height: 1; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; transition: border-color .15s;
+  }
+  .periodo-nav:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+  .periodo-nav:disabled { opacity: .32; cursor: default; }
+  .periodo-atual {
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 176px;
+    height: 34px; padding: 0 18px; border-radius: 20px; border: 1px solid var(--line); background: var(--card);
+    font: inherit; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; transition: border-color .15s;
+  }
+  .periodo-atual:hover { border-color: var(--accent); }
+  .periodo-seta { font-size: 10px; color: var(--muted); }
+
+  /* Gaveta que sobe de baixo, pra escolher mês ou ano */
+  .gaveta-fundo { position: fixed; inset: 0; background: rgba(43,36,32,.45); z-index: 80; display: none; align-items: flex-end; justify-content: center; }
+  .gaveta-fundo.on { display: flex; }
+  .gaveta {
+    background: var(--card); width: 100%; max-width: 480px; border-radius: 18px 18px 0 0;
+    padding: 20px 20px calc(20px + env(safe-area-inset-bottom)); box-shadow: 0 -4px 20px rgba(43,36,32,.15);
+    max-height: calc(100vh - 40px); overflow-y: auto;
+  }
+  @media (min-width: 900px) { .gaveta-fundo { align-items: center; } .gaveta { border-radius: 18px; margin: 0 16px; } }
+  .gaveta h3 { font-size: 17px; margin: 0 0 4px; }
+  .gaveta .quando { color: var(--ink-2); font-size: 13px; margin-bottom: 14px; }
+  .periodo-op {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 13px 4px; border-top: 1px solid var(--line-2); cursor: pointer; font-size: 15px;
+  }
+  .periodo-op:first-of-type { border-top: none; }
+  .periodo-op:hover { background: var(--ground); }
+  .periodo-op.on { color: var(--accent-ink); font-weight: 600; }
+  .periodo-grupo { font-size: 12px; color: var(--muted); margin: 14px 0 2px; }
+
+  /* Título de seção que também é botão de recolher */
+  /* Rodapé de Obras: a régua das seis fases e os números da operação */
+  .fase-resumo { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
+  .fase-fita { display: flex; gap: 6px; }
+  .fase-quadro {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
+    background: var(--card); border: 1px solid var(--line-2); border-radius: 10px;
+    padding: 9px 4px; min-width: 0;
+  }
+  .fase-quadro b { font-size: 16px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1; }
+  .fase-quadro i {
+    font-style: normal; font-size: 9px; font-weight: 600; letter-spacing: .02em; color: var(--muted);
+    text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
+  }
+  .fase-quadro.tem { border-color: color-mix(in srgb, var(--fcor) 38%, var(--line)); background: color-mix(in srgb, var(--fcor) 6%, var(--card)); }
+  .fase-quadro.tem b { color: var(--fcor); }
+  .fase-quadro.tem i { color: var(--ink-2); }
+  .fase-mais {
+    display: flex; gap: 8px 20px; flex-wrap: wrap; margin-top: 12px;
+    font-size: 12px; color: var(--muted);
+  }
+  .fase-mais b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
+  @media (max-width: 560px) { .fase-quadro i { display: none; } }
+
+  .eyebrow-btn { width: 100%; background: none; border: none; cursor: pointer; text-align: left; font: inherit;
+    font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0; }
+  .eyebrow-btn .obra-meta { font-weight: 500; }
+  /* O que entrou e o que saiu da obra, lado a lado */
+  .obra-fluxo { display: flex; gap: 16px; margin-top: 9px; padding-top: 9px; border-top: 1px solid var(--line-2); font-size: 11.5px; color: var(--muted); }
+  .obra-fluxo span { display: flex; align-items: center; gap: 5px; }
+  .obra-fluxo b { font-size: 12.5px; font-weight: 600; margin-left: 2px; }
+  .obra-fluxo i { width: 7px; height: 7px; border-radius: 2px; flex: none; }
+  .obra-fluxo i.entrou { background: var(--good); }
+  .obra-fluxo i.saiu { background: var(--accent); }
+
   .eyebrow {
     font-size: 13px; font-weight: 600; letter-spacing: -.01em; text-transform: none;
     color: var(--ink-2); margin: 22px 0 10px; display: flex; align-items: center; gap: 10px;
@@ -1179,7 +1283,8 @@
         </button>
         <button class="btn small" id="btn-reset">Recarregar exemplo</button>
       </div>
-      <div class="zin" id="nota-storage">Protótipo v10. Os dados ficam salvos neste navegador. Backup no botão de ajuda, no topo.</div>
+      <div class="zin" id="nota-storage">Protótipo v10. Os dados ficam salvos neste navegador.
+        <button class="zin-link" id="btn-ajuda">Backup e ajuda</button></div>
     </div>
   </aside>
 
@@ -1194,9 +1299,6 @@
       <nav class="nav-topo" id="nav-topo" aria-label="Seções"></nav>
       <h1 id="titulo-tela">Início</h1>
       <button class="icon-btn" id="btn-tema-topo" style="margin-left:auto;flex:none" title="Tema claro ou escuro" aria-label="Alternar tema claro e escuro"></button>
-      <button class="icon-btn" id="btn-ajuda" style="flex:none" title="Ajuda e backup" aria-label="Ajuda e backup" aria-haspopup="dialog">
-        <svg width="16" height="16" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M9.2 9.4a2.8 2.8 0 1 1 3.9 2.8c-.8.35-1.1.9-1.1 1.8"/><path d="M12 17.2h.01"/></svg>
-      </button>
       <button class="extrato-btn" id="btn-extrato" style="margin-left:0" aria-haspopup="dialog" aria-expanded="false">
         <svg width="17" height="17" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5h12a1 1 0 0 1 1 1v18l-3.2-2-3.4 2-3.4-2L6 21.5v-18a1 1 0 0 1 1-1z"/><path d="M9.5 8h5M9.5 12h5"/></svg>
         <span id="extrato-rot">Em aberto</span>
@@ -1306,6 +1408,15 @@
 <button class="fab" id="fab" aria-label="Ações" aria-haspopup="menu" aria-expanded="false">
   <svg width="24" height="24" viewBox="0 0 24 24" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
 </button>
+
+<div class="gaveta-fundo" id="periodo-fundo">
+  <div class="gaveta" role="dialog" aria-label="Escolher período">
+    <h3>Ver período</h3>
+    <p class="quando">Escolha o mês ou o ano inteiro</p>
+    <div id="periodo-lista"></div>
+    <div style="margin-top:16px"><button class="btn" style="width:100%" id="periodo-fechar">Fechar</button></div>
+  </div>
+</div>
 
 <div id="comp-caixa" hidden role="dialog" aria-label="Comprovantes da transação">
   <div class="comp-painel">
@@ -4747,6 +4858,12 @@ const ABAS = [
   { id:'galpao',      rot:'Ferramentas',        curto:'Ferram.',  ico:'ferramenta' },
   { id:'equipe',      rot:'Equipe',             curto:'Equipe',   ico:'equipe' }
 ];
+/* O Início pode olhar um mês ou o ano inteiro. `desloc` é quantos meses
+   pra trás a partir de hoje, e no modo ano é quantos anos. */
+let periodo = { tipo: 'mes', desloc: 0 };
+/* As obras chegam recolhidas no Início: quem abre a tela quer os
+   números, e quem quer obra clica em Obras. */
+let obrasAbertasInicio = false;
 let abaAtual = 'painel';
 let obraAberta = null;
 let filtroFin = 'todos';
@@ -4933,10 +5050,99 @@ function barraTopo(x, yTop, w, h, cor, tip) {
 }
 
 /* ================= Painel ================= */
+/* ------------------------------------------------------------------
+   A SECRETÁRIA NA TELA
+   Não é enfeite: é o Jorge conseguir ver, sem abrir o WhatsApp, que tem
+   alguém de plantão. Quando o painel é servido pela VPS, o servidor
+   manda o estado de verdade; no arquivo solto ele não tem como saber, e
+   aí ela aparece sem inventar número.
+   ------------------------------------------------------------------ */
+function abrirPeriodo() {
+  const lista = document.getElementById('periodo-lista');
+  const ano = new Date().getFullYear();
+  let h = '';
+  for (let i = 0; i > -6; i--) {
+    const mk = mesKey(i);
+    const marcado = periodo.tipo === 'mes' && periodo.desloc === i;
+    h += '<div class="periodo-op' + (marcado ? ' on' : '') + '" data-per="mes|' + i + '">' +
+      '<span>' + nomeMes(mk) + ' ' + mk.split('-')[0] + '</span>' +
+      '<span>' + (marcado ? '&#10003;' : '&rsaquo;') + '</span></div>';
+  }
+  h += '<p class="periodo-grupo">Ano inteiro</p>';
+  [0, -1].forEach(i => {
+    const marcado = periodo.tipo === 'ano' && periodo.desloc === i;
+    h += '<div class="periodo-op' + (marcado ? ' on' : '') + '" data-per="ano|' + i + '">' +
+      '<span>Ano de ' + (ano + i) + '</span>' +
+      '<span>' + (marcado ? '&#10003;' : '&rsaquo;') + '</span></div>';
+  });
+  lista.innerHTML = h;
+  lista.querySelectorAll('[data-per]').forEach(b => b.addEventListener('click', () => {
+    const [tipo, d] = b.dataset.per.split('|');
+    periodo = { tipo, desloc: Number(d) };
+    fecharPeriodo();
+    render();
+  }));
+  document.getElementById('periodo-fundo').classList.add('on');
+}
+function fecharPeriodo() { document.getElementById('periodo-fundo').classList.remove('on'); }
+
+function cartaoSecretaria() {
+  const st = (typeof window !== 'undefined' && window.__SEC__) || null;
+  if (!st) {
+    return '<div class="secre">' +
+      '<span class="secre-luz" style="background:var(--muted)"></span>' +
+      '<span class="secre-txt"><b>Secretária no WhatsApp</b>' +
+        '<span>Este painel está solto, sem servidor, então não consigo ver se ela está de pé.</span></span>' +
+    '</div>';
+  }
+  const fora = !st.ligada || !st.whatsapp;
+  const conversas = Number(st.conversas) || 0;
+  return '<div class="secre' + (fora ? ' fora-do-ar' : '') + '">' +
+    '<span class="secre-luz"></span>' +
+    '<span class="secre-txt">' +
+      '<b>' + (fora ? 'Secretária fora do ar' : 'Secretária atendendo') + '</b>' +
+      '<span>' + (fora
+        ? 'Ninguém está respondendo no WhatsApp agora.'
+        : 'Respondendo no WhatsApp' + (conversas ? ' · ' + conversas + ' conversa' + (conversas === 1 ? '' : 's') : '')) + '</span>' +
+      '<span class="secre-mon">' +
+        '<i class="' + (st.ligada ? 'mon-ok' : 'mon-erro') + '">' + (st.ligada ? 'Respostas funcionando' : 'Respostas paradas') + '</i>' +
+        '<i class="' + (st.whatsapp ? 'mon-ok' : 'mon-erro') + '">' + (st.whatsapp ? 'WhatsApp conectado' : 'WhatsApp desconectado') + '</i>' +
+      '</span>' +
+    '</span>' +
+  '</div>';
+}
+
+/* ------------------------------------------------------------------
+   A BARRA DE PERÍODO
+   Setas andam de um em um, e o meio abre a lista com os meses e o ano
+   inteiro. É a mesma peça dos outros painéis da casa.
+   ------------------------------------------------------------------ */
+function rotuloPeriodo() {
+  if (periodo.tipo === 'ano') return 'Ano de ' + (new Date().getFullYear() + periodo.desloc);
+  const mk = mesKey(periodo.desloc);
+  return nomeMes(mk) + ' ' + mk.split('-')[0];
+}
+function barraPeriodo() {
+  return '<div class="periodo-barra">' +
+    '<button class="periodo-nav" id="per-ant" aria-label="Anterior">&lsaquo;</button>' +
+    '<button class="periodo-atual" id="per-abre">' + esc(rotuloPeriodo()) +
+      '<span class="periodo-seta">&#9660;</span></button>' +
+    '<button class="periodo-nav" id="per-prox" aria-label="Seguinte"' +
+      (periodo.desloc >= 0 ? ' disabled' : '') + '>&rsaquo;</button>' +
+  '</div>';
+}
+/* Todo lançamento que cai no período escolhido */
+function noPeriodo(l) {
+  if (periodo.tipo === 'ano') return String(l.data).startsWith(String(new Date().getFullYear() + periodo.desloc));
+  return String(l.data).startsWith(mesKey(periodo.desloc));
+}
+
 function telaPainel() {
-  const mk = mesKey(mesPainel);
-  const tituloM = nomeMes(mk) + ' de ' + mk.split('-')[0];
-  const ent = somaMes(mk, 'entrada'), sai = somaMes(mk, 'saída');
+  const mk = mesKey(periodo.tipo === 'mes' ? periodo.desloc : 0);
+  const tituloM = rotuloPeriodo();
+  const doPeriodo = state.lancamentos.filter(noPeriodo);
+  const ent = doPeriodo.filter(l => l.tipo === 'entrada').reduce((a, l) => a + l.valor, 0);
+  const sai = doPeriodo.filter(l => l.tipo === 'saída').reduce((a, l) => a + l.valor, 0);
   const saldo = ent - sai;
   const pend = state.folha.linhas.filter(l => !l.pago);
   const aPagar = pend.reduce((s, l) => s + l.valor, 0);
@@ -4957,11 +5163,11 @@ function telaPainel() {
   const dataHoje = new Intl.DateTimeFormat('pt-BR', { weekday:'long', day:'2-digit', month:'long' }).format(new Date());
 
   /* Faturamento e líquido do mês escolhido, para os anéis */
-  const entCaixa = state.lancamentos.filter(l => l.data.startsWith(mk) && l.tipo === 'entrada' && l.categoria === 'liberação Caixa').reduce((a, l) => a + l.valor, 0);
-  const entCliente = state.lancamentos.filter(l => l.data.startsWith(mk) && l.tipo === 'entrada' && l.categoria === 'recebimento cliente').reduce((a, l) => a + l.valor, 0);
+  const entCaixa = doPeriodo.filter(l => l.tipo === 'entrada' && l.categoria === 'liberação Caixa').reduce((a, l) => a + l.valor, 0);
+  const entCliente = doPeriodo.filter(l => l.tipo === 'entrada' && l.categoria === 'recebimento cliente').reduce((a, l) => a + l.valor, 0);
   const entOutro = ent - entCaixa - entCliente;
   const porCatSai = {};
-  state.lancamentos.filter(l => l.data.startsWith(mk) && l.tipo === 'saída')
+  doPeriodo.filter(l => l.tipo === 'saída')
     .forEach(l => { porCatSai[l.categoria] = (porCatSai[l.categoria] || 0) + l.valor; });
   const CORES_CAT = ['var(--accent)', 'var(--petrol)', '#9A5306', '#5B4B8A', '#7A7F86'];
   const catsOrd = Object.entries(porCatSai).sort((a, b) => b[1] - a[1]);
@@ -4980,22 +5186,19 @@ function telaPainel() {
 
     </div>
 
-    <div class="eyebrow">Agora</div>
+    ${cartaoSecretaria()}
+    ${barraPeriodo()}
     <div class="tiles">
       <button class="tile t-accent clicavel" data-fase-ir="execucao" title="Ver as obras em execução"><div class="k">Em execução</div><div class="v">${emExecucao.length}</div><div class="s">${moeda(contratado)} contratados</div></button>
       <div class="tile t-petrol"><div class="k">A receber</div><div class="v">${moeda(aReceber)}</div><div class="s">falta entrar dos contratos</div></div>
       <div class="tile ${pend.length ? 't-crit' : 't-good'}"><div class="k">A pagar na folha</div><div class="v">${moeda(aPagar)}</div><div class="s">${pend.length} pendente${pend.length === 1 ? '' : 's'}</div></div>
     </div>
-    <div class="card strip" style="margin-top:10px">
-      <button class="lig" data-fase-ir="credito">Na Caixa <b>${naCaixa}</b></button>
-      <button class="lig" data-fase-ir="orcamento">Em orçamento <b>${emOrcamento.length}</b>${orcadoAberto ? ' · ' + moeda(orcadoAberto) : ''}</button>
-      <span>Gente em obra <b>${equipeCampo}</b></span>
-      <span>Ferramenta fora <b>${ferFora}</b></span>
-      <span>Possíveis clientes <b>${state.leads.length}</b></span>
-    </div>
 
-    ${emExecucao.length ? `<div class="eyebrow">Obras<span class="push">construído x gasto</span></div>
-    <div class="grid-2">
+    ${emExecucao.length ? `<button class="eyebrow eyebrow-btn" id="tog-obras-inicio">
+      <span>Obras</span>
+      <span class="push obra-meta">${emExecucao.length} na rua · ${obrasAbertasInicio ? 'recolher' : 'ver'}</span>
+    </button>
+    <div class="grid-2"${obrasAbertasInicio ? '' : ' hidden'}>
       ${emExecucao.map(o => {
         const s = saudeObra(o);
         return `<button class="obra-card" data-obra="${o.id}" style="align-items:flex-start;flex-direction:column;gap:10px">
@@ -5015,16 +5218,16 @@ function telaPainel() {
               <span class="top" style="display:flex"><span>Contrato gasto</span><b>${s.gasto}%</b></span>
               <span class="bar" style="display:block"><i class="${s.gasto > 100 ? 'estouro' : 'gasto'}" style="width:${Math.min(100, s.gasto)}%"></i></span>
             </span>
+            <span class="obra-fluxo">
+              <span><i class="entrou"></i>Entrou<b class="money in">${moeda(recebidoObra(o.id))}</b></span>
+              <span><i class="saiu"></i>Saiu<b class="money out">${moeda(custoObra(o.id))}</b></span>
+            </span>
           </span>
           <span class="veredito ${s.nivel}" style="width:100%">${vereditoTxt(s)}</span>
         </button>`;
       }).join('')}
     </div>` : ''}
 
-    ${als.length ? `<div class="eyebrow">Atenção</div>
-    <div class="card rowlist">
-      ${als.map(a => '<div class="alert-row"><span class="alert-dot ' + (a.nivel === 'crit' ? 'crit' : '') + '"></span><span>' + esc(a.txt) + '</span></div>').join('')}
-    </div>` : ''}
 
     <div class="eyebrow">Dinheiro
       <span class="push mes-nav">
@@ -5176,7 +5379,28 @@ function telaObras() {
           }).join('')}
         </div>
       </div>` : ''}`;
-    }).join('')}`;
+    }).join('')}
+
+    ${(() => {
+      /* Rodapé da tela: a régua inteira num relance, e do lado os números
+         que saíram do Início porque o lugar deles é aqui. */
+      const porFase = FASES.map((f, i) => ({ i, f, n: state.obras.filter(o => o.status === f).length }));
+      const fora = ['pausada', 'concluída'].map(f => ({ f, n: state.obras.filter(o => o.status === f).length }))
+        .filter(x => x.n > 0);
+      const equipeCampo = state.pessoas.filter(p => p.papel !== 'fornecedor' && p.obraId).length;
+      return `<div class="fase-resumo">
+        <div class="fase-fita">
+          ${porFase.map(x => `<span class="fase-quadro${x.n ? ' tem' : ''}" style="--fcor:${FASE_COR[x.f]}" title="${esc(x.f)}">
+            <b>${x.n}</b><i>${esc(FASE_CURTA[x.f])}</i></span>`).join('')}
+        </div>
+        <div class="fase-mais">
+          ${fora.map(x => '<span>' + x.n + ' ' + esc(x.f) + '</span>').join('')}
+          <span>Gente em obra <b>${equipeCampo}</b></span>
+          <span>Ferramenta fora <b>${qtdForaDoGalpao()}</b></span>
+          <span>Possíveis clientes <b>${state.leads.length}</b></span>
+        </div>
+      </div>`;
+    })()}`;
 }
 
 function telaObraDetalhe(id) {
@@ -6346,6 +6570,17 @@ function ligarEventos() {
       executar('excluirDoc', b.dataset.docDel);
     }));
 
+  const togObras = document.getElementById('tog-obras-inicio');
+  if (togObras) togObras.addEventListener('click', () => { obrasAbertasInicio = !obrasAbertasInicio; render(); });
+
+  /* Barra de período: as setas andam, o meio abre a lista */
+  const pAnt = document.getElementById('per-ant');
+  if (pAnt) pAnt.addEventListener('click', () => { periodo.desloc -= 1; render(); });
+  const pProx = document.getElementById('per-prox');
+  if (pProx) pProx.addEventListener('click', () => { if (periodo.desloc < 0) { periodo.desloc += 1; render(); } });
+  const pAbre = document.getElementById('per-abre');
+  if (pAbre) pAbre.addEventListener('click', abrirPeriodo);
+
   /* Do painel pro grupo de fase certo, já aberto */
   document.querySelectorAll('[data-fase-ir]').forEach(b =>
     b.addEventListener('click', () => irParaFase(b.dataset.faseIr)));
@@ -6589,6 +6824,10 @@ function restaurarExemplo() {
 }
 document.getElementById('btn-tema').addEventListener('click', alternarTema);
 document.getElementById('btn-tema-topo').addEventListener('click', alternarTema);
+document.getElementById('periodo-fechar').addEventListener('click', fecharPeriodo);
+document.getElementById('periodo-fundo').addEventListener('click', e => {
+  if (e.target.id === 'periodo-fundo') fecharPeriodo();
+});
 document.getElementById('ir-inicio').addEventListener('click', () => irPara('painel'));
 document.getElementById('btn-reset').addEventListener('click', restaurarExemplo);
 
@@ -6606,6 +6845,9 @@ function fecharAjuda() {
   document.getElementById('ajuda-fundo').hidden = true;
   document.getElementById('ajuda').hidden = true;
 }
+/* O botão de ajuda saiu do topo, que é lugar de coisa do dia a dia. A
+   janela continua existindo, alcançada pelo rodapé da lateral, porque é
+   lá que mora o backup. */
 document.getElementById('btn-ajuda').addEventListener('click', abrirAjuda);
 document.getElementById('ajuda-fechar').addEventListener('click', fecharAjuda);
 document.getElementById('ajuda-ok').addEventListener('click', fecharAjuda);
