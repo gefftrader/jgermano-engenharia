@@ -371,6 +371,34 @@
   /* ===================================================================
      BLOCOS
      =================================================================== */
+  /* Topo: a marca leva pro começo, a navegação vem ao lado, e o tema
+     fica na ponta direita. Em tela estreita a navegação some e quem
+     manda é o rodapé, senão vira um amontoado de palavra pequena. */
+  .marca-topo {
+    display: flex; align-items: center; gap: 9px; background: none; border: none;
+    cursor: pointer; padding: 4px 8px 4px 0; flex: none; color: var(--ink);
+  }
+  .marca-topo span { display: flex; flex-direction: column; align-items: flex-start; line-height: 1; }
+  .marca-topo b { font-size: 13px; font-weight: 800; letter-spacing: .06em; }
+  .marca-topo i { font-style: normal; font-size: 8.5px; font-weight: 700; letter-spacing: .22em; color: var(--muted); }
+  .marca-topo:hover b { color: var(--accent); }
+
+  .nav-topo { display: flex; gap: 2px; align-items: center; margin-left: 6px; }
+  .nav-topo button {
+    position: relative; background: none; border: none; cursor: pointer;
+    padding: 7px 11px; border-radius: 9px; font: inherit; font-size: 13px;
+    font-weight: 600; color: var(--muted);
+  }
+  .nav-topo button:hover { background: var(--line-2); color: var(--ink); }
+  .nav-topo button.on { background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; }
+  .nav-topo .badge {
+    position: static; margin-left: 6px; display: inline-block; min-width: 16px;
+    padding: 0 4px; border-radius: 99px; background: var(--crit); color: #FFFFFF;
+    font-size: 10px; font-weight: 800; line-height: 16px; text-align: center;
+  }
+  @media (max-width: 1100px) { .nav-topo { display: none; } }
+  @media (max-width: 620px) { .marca-topo span { display: none; } }
+
   .eyebrow {
     font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase;
     color: var(--muted); margin: 26px 0 10px; display: flex; align-items: center; gap: 10px;
@@ -1146,8 +1174,16 @@
 
   <div class="content">
     <header class="topbar">
+      <button class="marca-topo" id="ir-inicio" title="Voltar pro painel" aria-label="Voltar pro painel">
+        <svg width="22" height="22" viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M19 2 L28 5 L28 23 Q28 30 20.5 30 L11 30 Q4 30 4 23 L4 19 L11.5 19 L11.5 21.5 Q11.5 24 14 24 L17 24 Q19 24 19 21.5 Z" fill="#E8632A"/>
+        </svg>
+        <span><b>JGERMANO</b><i>ENGENHARIA</i></span>
+      </button>
+      <nav class="nav-topo" id="nav-topo" aria-label="Seções"></nav>
       <h1 id="titulo-tela">Painel</h1>
-      <button class="icon-btn" id="btn-ajuda" style="margin-left:auto;flex:none" title="Ajuda e backup" aria-label="Ajuda e backup" aria-haspopup="dialog">
+      <button class="icon-btn" id="btn-tema-topo" style="margin-left:auto;flex:none" title="Tema claro ou escuro" aria-label="Alternar tema claro e escuro"></button>
+      <button class="icon-btn" id="btn-ajuda" style="flex:none" title="Ajuda e backup" aria-label="Ajuda e backup" aria-haspopup="dialog">
         <svg width="16" height="16" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.2"/><path d="M9.2 9.4a2.8 2.8 0 1 1 3.9 2.8c-.8.35-1.1.9-1.1 1.8"/><path d="M12 17.2h.01"/></svg>
       </button>
       <button class="extrato-btn" id="btn-extrato" style="margin-left:0" aria-haspopup="dialog" aria-expanded="false">
@@ -2983,7 +3019,7 @@ function responderPend(frase) {
       return r.msg;
     }
     state.secPend = null; salvar();
-    return 'Não fiz nada, então.';
+    return 'Cancelado, não mexi em nada.';
   }
   /* Escapa: se virou outro pedido, solta a pendência e atende o novo */
   if (pareceOutroComando(t)) {
@@ -3958,7 +3994,10 @@ function secretaria(frase) {
     return r.msg + ' Falta o pix, em Equipe.';
   }
 
-  return 'Não entendi. ' + SEC_AJUDA;
+  /* Não entendi vira uma linha, não um cardápio. Secretária de verdade
+     pede pra repetir, não recita o manual. Quem quiser a lista pede
+     "ajuda", que continua funcionando. */
+  return 'Não entendi. Me diz de outro jeito?';
 }
 
 /* Resumo da semana: o texto que o Jorge manda no grupo ou guarda.
@@ -4221,68 +4260,106 @@ const FORMS = {
     ],
     nota: 'Na Financiamento Caixa, o financiado é o contrato menos a entrada do cliente.'
   },
-  lancamento: {
-    titulo: id => id ? 'Editar lançamento' : 'Novo lançamento',
-    ler: id => state.lancamentos.find(l => l.id === id),
-    /* Uma porta só pro dinheiro. Efetuado é dinheiro que já andou e vira
-       lançamento; pendente é dinheiro combinado e vira conta a receber
-       ou a pagar, com a data virando vencimento. Antes eram dois botões
-       em telas diferentes, e o Jorge procurava o pendente aqui. */
-    criar: d => d.status === 'pendente'
-      ? ACOES.criarConta({ tipo: d.tipo === 'entrada' ? 'receber' : 'pagar', valor: d.valor,
-          desc: d.desc || rotCat(d.categoria), venc: d.venc, obraId: d.obraId,
-          categoria: d.categoria, parcelas: 1 })
-      : ACOES.criarLancamento(d),
-    editar: (id, d) => ACOES.editarLancamento(id, d),
-    excluir: id => ACOES.excluirLancamento(id),
-    /* A ordem segue o jeito de contar do Jorge: primeiro de qual obra é,
-       depois o que foi, quanto foi, e só então os detalhes. */
-    campos: [
-      { k:'obraId',    rot:'Obra', opcoes: () => opcoesObras(true), full:true },
-      { k:'desc',      rot:'Descrição', full:true, ph:'Ex: cimento pro contrapiso' },
+  /* ==================================================================
+     UMA PORTA SÓ PRO DINHEIRO
+     Antes existiam dois formulários fazendo a mesma coisa com campos e
+     ordens diferentes: "Novo lançamento" no Financeiro e "Nova conta"
+     em Contas em aberto. Fora a confusão pra quem usa, isso é veneno
+     pra secretária: se a tela não sabe a diferença entre um pagamento
+     feito e um combinado, ela também não sabe.
+
+     Agora é uma lista de campos só, na ordem que o Jorge conta a
+     história: de qual obra é, o que foi, quanto, se entra ou sai, e se
+     já aconteceu ou está marcado. As duas portas continuam existindo,
+     mudando só o que vem marcado por padrão.
+     ================================================================== */
+  ...(() => {
+    const camposDinheiro = padraoStatus => ([
+      { k:'obraId',    rot:'Obra', full:true, opcoes: () => opcoesObras(true) },
+      { k:'desc',      rot:'Descrição', full:true, ph:'Ex: cimento pra obra da Mirelly' },
       { k:'valor',     rot:'Valor (R$)', tipo:'number', step:'any', min:'0.01', req:true, full:true },
       { k:'tipo',      rot:'Tipo', tipo:'seg', full:true, opcoes:[
           {v:'entrada', r:'Entrada', ico:'sobe',  cor:'var(--f-inicio)'},
           {v:'saída',   r:'Saída',   ico:'desce', cor:'var(--f-execucao)'}] },
-      { k:'status',    rot:'Status', tipo:'seg', full:true, soCriar:true, padrao: () => 'efetuado', opcoes:[
+      { k:'status',    rot:'Status', tipo:'seg', full:true, soCriar:true, padrao: () => padraoStatus, opcoes:[
           {v:'efetuado', r:'Efetuado', ico:'feito',  cor:'var(--f-pos)'},
           {v:'pendente', r:'Pendente', ico:'espera', cor:'var(--f-final)'}] },
       { k:'categoria', rot:'Categoria', full:true, opcoes: () => opcoesCategorias() },
-      /* Efetuado é dinheiro que já andou, então a data vem preenchida com
-         hoje. Pendente é dinheiro combinado, então o dia é do cliente:
-         o campo abre vazio, no mês corrente, e ele escolhe. */
+
+      /* Já aconteceu: a data é a do fato */
       { k:'data',      rot:'Data da realização', tipo:'date', so:{ status:['efetuado'] }, padrao: () => hojeISO() },
-      { k:'venc',      rot:'Vencimento', tipo:'date', soCriar:true, req:true,
-        so:{ status:['pendente'] }, min: mesAtualISO() }
-    ]
-  },
-  conta: {
-    titulo: id => id ? 'Editar conta' : 'Nova conta',
-    /* recorrente vive como booleano no estado e como '1'/'' no select */
-    ler: id => {
-      const c = state.contas.find(x => x.id === id);
-      return c ? Object.assign({}, c, { recorrente: c.recorrente ? '1' : '', venc2: c.venc, jaFoi: '', parcelas: 1 }) : c;
-    },
-    criar: d => ACOES.criarConta(d),
-    editar: (id, d) => ACOES.editarConta(id, d),
-    excluir: id => ACOES.excluirConta(id),
-    campos: [
-      { k:'tipo',      rot:'Tipo', tipo:'seg', full:true, opcoes:[
-          {v:'receber', r:'Entrada', ico:'sobe',  cor:'var(--f-inicio)'},
-          {v:'pagar',   r:'Saída',   ico:'desce', cor:'var(--f-execucao)'}] },
-      { k:'valor',     rot:'Valor total (R$)', tipo:'number', step:'any', min:'0.01', req:true, full:true },
-      { k:'jaFoi',     rot:'Status', tipo:'seg', full:true, opcoes:[
-          {v:'1', r:'Efetuado', ico:'feito',  cor:'var(--f-pos)'},
-          {v:'',  r:'Pendente', ico:'espera', cor:'var(--f-final)'}] },
-      { k:'venc',      rot:'Data do pagamento', tipo:'date', req:true, padrao: () => hojeISO(), so:{ jaFoi:['1'] } },
-      { k:'venc2',     rot:'1º vencimento', tipo:'date', req:true, espelha:'venc', padrao: () => hojeISO(), so:{ jaFoi:[''] } },
-      { k:'parcelas',  rot:'Parcelas', tipo:'number', min:'1', max:'36', step:'1', padrao: () => 1, so:{ jaFoi:[''] }, soCriar:true },
-      { k:'categoria', rot:'Categoria', opcoes: () => opcoesCategorias() },
-      { k:'obraId',    rot:'Obra', opcoes: () => opcoesObras(true) },
-      { k:'desc',      rot:'Descrição', full:true, ph:'Ex: entrada do cliente, 2ª medição da Caixa' },
-      { k:'recorrente',rot:'Repete todo mês?', full:true, opcoes:[{v:'',r:'Não'},{v:'1',r:'Sim, todo mês'}], so:{ jaFoi:[''] } }
-    ]
-  },
+
+      /* Ainda vai acontecer: vencimento e o que repete */
+      { k:'venc',      rot:'Vencimento', tipo:'date', req:true, min: mesAtualISO(),
+        so:{ status:['pendente'] } },
+      { k:'repete',    rot:'Repete?', tipo:'seg', full:true, soCriar:true, padrao: () => 'nao',
+        so:{ status:['pendente'] }, opcoes:[
+          {v:'nao',       r:'Uma vez',   ico:'feito',  cor:'var(--f-concluida)'},
+          {v:'parcelado', r:'Parcelado', ico:'espera', cor:'var(--f-execucao)'},
+          {v:'mes',       r:'Todo mês',  ico:'espera', cor:'var(--f-credito)'}] },
+      { k:'parcelas',  rot:'Quantas vezes', tipo:'number', min:'2', max:'36', step:'1',
+        padrao: () => 2, soCriar:true, so:{ repete:['parcelado'] } },
+      { k:'baseValor', rot:'O valor que você digitou é', tipo:'seg', full:true, soCriar:true,
+        padrao: () => 'total', so:{ repete:['parcelado'] }, opcoes:[
+          {v:'total', r:'O total',      ico:'feito',  cor:'var(--f-pos)'},
+          {v:'cada',  r:'De cada vez',  ico:'espera', cor:'var(--f-final)'}] }
+    ]);
+
+    /* Traduz o formulário pra ação, seja qual for a porta usada */
+    const gravar = d => {
+      const valor = Number(d.valor) || 0;
+      if (d.status === 'efetuado') {
+        return ACOES.criarLancamento({
+          tipo: d.tipo, valor, categoria: d.categoria, obraId: d.obraId,
+          desc: d.desc, data: d.data
+        });
+      }
+      const vezes = d.repete === 'parcelado' ? Math.max(2, Math.min(36, Number(d.parcelas) || 2)) : 1;
+      /* criarConta divide o total pelas parcelas, então quando ele
+         digita o valor de CADA uma a gente multiplica antes. */
+      const total = (d.repete === 'parcelado' && d.baseValor === 'cada') ? valor * vezes : valor;
+      return ACOES.criarConta({
+        tipo: d.tipo === 'entrada' ? 'receber' : 'pagar',
+        valor: total, desc: d.desc || rotCat(d.categoria), venc: d.venc,
+        obraId: d.obraId, categoria: d.categoria, parcelas: vezes,
+        recorrente: d.repete === 'mes' ? '1' : ''
+      });
+    };
+
+    return {
+      lancamento: {
+        titulo: id => id ? 'Editar lançamento' : 'Novo lançamento',
+        ler: id => state.lancamentos.find(l => l.id === id),
+        criar: gravar,
+        editar: (id, d) => ACOES.editarLancamento(id, d),
+        excluir: id => ACOES.excluirLancamento(id),
+        nota: 'PREVIA',
+        campos: camposDinheiro('efetuado')
+      },
+      conta: {
+        titulo: id => id ? 'Editar conta' : 'Nova conta',
+        ler: id => {
+          const c = state.contas.find(x => x.id === id);
+          if (!c) return c;
+          return Object.assign({}, c, {
+            tipo: c.tipo === 'receber' ? 'entrada' : 'saída',
+            status: c.status === 'quitado' ? 'efetuado' : 'pendente',
+            repete: c.recorrente ? 'mes' : 'nao'
+          });
+        },
+        criar: gravar,
+        editar: (id, d) => ACOES.editarConta(id, Object.assign({}, d, {
+          tipo: d.tipo === 'entrada' ? 'receber' : 'pagar',
+          jaFoi: d.status === 'efetuado' ? '1' : '',
+          recorrente: d.repete === 'mes' ? '1' : ''
+        })),
+        excluir: id => ACOES.excluirConta(id),
+        nota: 'PREVIA',
+        campos: camposDinheiro('pendente')
+      }
+    };
+  })(),
+
   pessoa: {
     titulo: id => id ? 'Editar pessoa' : 'Nova pessoa',
     ler: id => pessoa(id),
@@ -4507,7 +4584,9 @@ function abrirForm(nome, id) {
     const cond = c.so ? ' data-so="' + esc(Object.keys(c.so)[0]) + '" data-so-v="' + esc(c.so[Object.keys(c.so)[0]].join('|')) + '"' : '';
     return '<div' + cls + cond + '><label class="lab" for="mf-' + c.k + '">' + esc(c.rot) + '</label>' + campo +
       (c.dica ? '<span class="dica">' + esc(c.dica) + '</span>' : '') + '</div>';
-  }).join('') + (F.nota ? '<p class="modal-nota full">' + esc(F.nota) + '</p>' : '');
+  }).join('') + (F.nota === 'PREVIA'
+    ? '<p class="modal-nota full" id="previa-parcelas"></p>'
+    : (F.nota ? '<p class="modal-nota full">' + esc(F.nota) + '</p>' : ''));
 
   document.getElementById('modal-form').innerHTML = html;
   /* Os botões de duas faces: clicar troca o marcado, guarda no campo
@@ -4534,6 +4613,10 @@ function abrirForm(nome, id) {
       x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
     });
   }));
+  ['mf-valor', 'mf-parcelas', 'mf-baseValor', 'mf-repete', 'mf-tipo'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.addEventListener('input', atualizarPreviaParcelas); el.addEventListener('change', atualizarPreviaParcelas); }
+  });
   aplicarCondicoes();
   /* Reavalia a cada mudança dos campos que governam os condicionais */
   const governantes = new Set();
@@ -4569,16 +4652,52 @@ function sincronizarCategorias() {
 }
 
 function aplicarCondicoes() {
+  /* Duas voltas porque tem campo que depende de campo que depende de
+     outro: parcelas só existe se "repete" for parcelado, e "repete" só
+     existe se o status for pendente. Sem a segunda volta, escolher
+     efetuado deixava o número de parcelas na tela. */
+  for (let volta = 0; volta < 2; volta++) aplicarCondicoesUmaVez();
+  atualizarPreviaParcelas();
+}
+function aplicarCondicoesUmaVez() {
   document.querySelectorAll('#modal-form [data-so]').forEach(div => {
     const gov = document.getElementById('mf-' + div.dataset.so);
     const aceitos = String(div.dataset.soV || '').split('|');
-    const mostrar = gov ? aceitos.indexOf(String(gov.value)) >= 0 : true;
+    const caixaDoGov = gov ? gov.closest('[data-so]') : null;
+    const govEscondido = caixaDoGov ? caixaDoGov.hidden : false;
+    const mostrar = gov ? (!govEscondido && aceitos.indexOf(String(gov.value)) >= 0) : true;
     div.hidden = !mostrar;
     div.querySelectorAll('input, select').forEach(el => {
       if (mostrar) { if (el.dataset.req === '1') el.required = true; }
       else { if (el.required) el.dataset.req = '1'; el.required = false; }
     });
   });
+}
+
+/* A linha que diz, em português, o que vai ser criado. É ela que
+   resolve a dúvida do "esse valor é o total ou é de cada uma?". */
+function atualizarPreviaParcelas() {
+  const alvo = document.getElementById('previa-parcelas');
+  if (!alvo) return;
+  const val = Number((document.getElementById('mf-valor') || {}).value) || 0;
+  const rep = (document.getElementById('mf-repete') || {}).value || 'nao';
+  const n = Math.max(1, Math.min(36, Number((document.getElementById('mf-parcelas') || {}).value) || 1));
+  const base = (document.getElementById('mf-baseValor') || {}).value || 'total';
+  const tipo = (document.getElementById('mf-tipo') || {}).value || 'saída';
+  const sinal = (tipo === 'entrada' || tipo === 'receber') ? 'entra' : 'sai';
+
+  if (!val) { alvo.textContent = ''; return; }
+  if (rep === 'mes') {
+    alvo.textContent = moeda(val) + ' que ' + sinal + ' todo mês, até você mandar parar.';
+    return;
+  }
+  if (rep === 'parcelado' && n > 1) {
+    const cada = base === 'cada' ? val : Math.floor((val / n) * 100) / 100;
+    const total = base === 'cada' ? val * n : val;
+    alvo.textContent = n + ' parcelas de ' + moeda(cada) + ', total ' + moeda(total) + '.';
+    return;
+  }
+  alvo.textContent = '';
 }
 
 function fecharForm() {
@@ -4605,10 +4724,13 @@ function lerForm() {
 /* ================= Navegação ================= */
 /* "curto" é só para a barra do celular: seis rótulos longos numa tela de
    390px se atropelam. No trilho do desktop vale o nome inteiro. */
+/* Possíveis clientes saiu da barra pra o rodapé caber sem apertar. A
+   tela continua existindo e funcionando, e quando fizer falta é só
+   devolver a linha aqui. Enquanto isso o orçamento dá conta: obra em
+   fase 0 é cliente que ainda não fechou. */
 const ABAS = [
   { id:'painel',      rot:'Painel',             curto:'Painel',   ico:'painel' },
   { id:'obras',       rot:'Obras',              curto:'Obras',    ico:'obras' },
-  { id:'clientes',    rot:'Possíveis clientes', curto:'Clientes', ico:'clientes' },
   { id:'pagamentos',  rot:'Pagamentos',         curto:'Folha',    ico:'pagamentos' },
   { id:'financeiro',  rot:'Financeiro',         curto:'Finanças', ico:'financeiro' },
   { id:'galpao',      rot:'Ferramentas',        curto:'Ferram.',  ico:'ferramenta' },
@@ -4666,6 +4788,26 @@ function renderNav() {
     '</button>'
   ).join('');
   document.getElementById('rail-nav').innerHTML = railHTML;
+
+  /* A mesma navegação no alto, ao lado da marca. No computador ela
+     substitui o trilho da esquerda em telas largas, e no celular
+     desaparece em favor do rodapé. */
+  const topo = document.getElementById('nav-topo');
+  if (topo) topo.innerHTML = ABAS.map(a =>
+    '<button class="' + (a.id === abaAtual ? 'on' : '') + '" data-aba="' + a.id + '">' + esc(a.curto) +
+      (b[a.id] ? '<span class="badge">' + b[a.id] + '</span>' : '') +
+    '</button>'
+  ).join('');
+
+  /* Sol quando está escuro, lua quando está claro: o desenho mostra
+     pra onde o toque leva, não onde você está. */
+  const bt = document.getElementById('btn-tema-topo');
+  if (bt) {
+    const escuro = document.documentElement.getAttribute('data-theme') === 'dark';
+    bt.innerHTML = escuro
+      ? '<svg width="17" height="17" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.2M12 19.8V22M4.9 4.9l1.6 1.6M17.5 17.5l1.6 1.6M2 12h2.2M19.8 12H22M4.9 19.1l1.6-1.6M17.5 6.5l1.6-1.6"/></svg>'
+      : '<svg width="17" height="17" viewBox="0 0 24 24"><path d="M20.5 14.4A8.6 8.6 0 0 1 9.6 3.5a8.6 8.6 0 1 0 10.9 10.9z"/></svg>';
+  }
 
   document.getElementById('tabbar').innerHTML = ABAS.map(a =>
     '<button class="' + (a.id === abaAtual ? 'on' : '') + '" data-aba="' + a.id + '">' +
@@ -4825,28 +4967,6 @@ function telaPainel() {
       <span class="data">${esc(dataHoje)}</span>
     </div>
 
-    <div class="sec-card">
-      <div class="sec-topo">
-        <span class="sec-ava" aria-hidden="true">
-          <svg width="19" height="19" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.8-.9L3 20.5l1.5-4.1A8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4z"/><path d="M8.6 11.5h.01M12 11.5h.01M15.4 11.5h.01"/></svg>
-        </span>
-        <span class="sec-id"><b>Secretária</b><span>faz tudo que o sistema faz</span></span>
-        <span class="push tag">fase 2 · WhatsApp</span>
-      </div>
-      ${state.sec.length ? '<div class="sec-log" id="sec-log">' + state.sec.slice(-12).map(x =>
-        '<div class="sec-msg ' + (x.de === 'j' ? 'j' : 's') + '">' + esc(x.txt) + '</div>').join('') + '</div>' : ''}
-      <div class="sec-linha">
-        <input id="sec-input" placeholder='Fala com ela: "Damião faltou hoje"' aria-label="Falar com a secretária" autocomplete="off">
-        <button id="sec-btn">Enviar</button>
-      </div>
-      <div class="sec-chips" aria-label="Exemplos de comando">
-        <button data-sec-ex="monta a folha da quinzena">monta a folha da quinzena</button>
-        <button data-sec-ex="como tá o mês?">como tá o mês?</button>
-        <button data-sec-ex="quanto tenho pra pagar?">quanto tenho pra pagar?</button>
-        <button data-sec-ex="quais obras estão no ar?">quais obras estão no ar?</button>
-        <button data-sec-ex="resumo da semana">resumo da semana</button>
-        <button data-sec-ex="ajuda">ajuda</button>
-      </div>
     </div>
 
     <div class="eyebrow">Agora</div>
@@ -5129,7 +5249,7 @@ function telaObraDetalhe(id) {
         if (!aReceber.length) return '<p class="obra-meta" style="margin:12px 0 0">Nenhum recebimento previsto anotado. Use "+ A receber" pra lançar a entrada do cliente, as medições da Caixa ou parcelas.</p>';
         return '<div class="rowlist" style="margin-top:6px">' + aReceber.map(c =>
           '<div style="display:flex;gap:10px;align-items:baseline;flex-wrap:wrap">' +
-            '<span><b>' + esc(c.desc) + '</b><br><span class="obra-meta">' + prazoTxt(diasAte(c.venc)) + ' · ' + dataBR(c.venc) + '</span></span>' +
+            '<span><b>' + esc(c.desc) + '</b><br><span class="obra-meta">' + prazoTxt(diasAte(c.venc)) + ' · ' + dataBR(c.venc).slice(0, 5) + '</span></span>' +
             '<span class="push money in">' + moeda(c.valor) + '</span>' +
             '<button class="btn small petrol" data-quitar="' + c.id + '">Recebi</button>' +
             btnEd('conta', c.id, c.desc) +
@@ -6014,92 +6134,10 @@ function ligarEventos() {
   document.querySelectorAll('[data-aba]').forEach(b =>
     b.addEventListener('click', () => irPara(b.dataset.aba)));
 
-  /* Secretária: processa a frase, guarda a conversa e redesenha */
-  const secBtn = document.getElementById('sec-btn');
-  if (secBtn) {
-    const enviar = () => {
-      const inp = document.getElementById('sec-input');
-      const txt = inp.value.trim();
-      if (!txt) { inp.focus(); return; }
-      state.sec.push({ de:'j', txt });
-      let resp;
-      try { resp = secretaria(txt); }
-      catch (e) { resp = 'Deu um nó aqui ao entender essa. Registra pela tela mesmo, e me conta de outro jeito que eu aprendo.'; }
-      state.sec.push({ de:'s', txt: resp });
-      if (state.sec.length > 40) state.sec = state.sec.slice(-40);
-      salvar();
-      secFoco = true;
-      render();
-      if (!document.getElementById('extrato-painel').hidden) renderExtrato();
-    };
-    secBtn.addEventListener('click', enviar);
-    document.getElementById('sec-input').addEventListener('keydown', e => { if (e.key === 'Enter') enviar(); });
-    document.querySelectorAll('[data-sec-ex]').forEach(b =>
-      b.addEventListener('click', () => {
-        const inp = document.getElementById('sec-input');
-        inp.value = b.dataset.secEx;
-        inp.focus();
-      }));
-    const log = document.getElementById('sec-log');
-    if (log) log.scrollTop = log.scrollHeight;
-    if (secFoco) { secFoco = false; document.getElementById('sec-input').focus(); }
-  }
-
-  const tip = document.getElementById('tooltip');
-  document.querySelectorAll('.barmark').forEach(el => {
-    const mostrar = ev => {
-      tip.textContent = el.dataset.tip;
-      tip.style.display = 'block';
-      const x = (ev.clientX || el.getBoundingClientRect().left + 20);
-      const y = (ev.clientY || el.getBoundingClientRect().top);
-      tip.style.left = Math.min(x + 12, window.innerWidth - tip.offsetWidth - 8) + 'px';
-      tip.style.top = (y - 34) + 'px';
-    };
-    el.addEventListener('mousemove', mostrar);
-    el.addEventListener('focus', mostrar);
-    el.addEventListener('mouseleave', () => tip.style.display = 'none');
-    el.addEventListener('blur', () => tip.style.display = 'none');
-  });
-
-  /* Abre a janela de formulário: criar (data-novo) e editar (data-ed).
-     Só dentro de #app, que é o que o render redesenha. Botão fixo fora
-     daqui é ligado uma vez só, senão empilha listener a cada render. */
-  document.querySelectorAll('#app [data-novo]').forEach(b =>
-    b.addEventListener('click', () => {
-      abrirForm(b.dataset.novo, null);
-      /* lançamento aberto de dentro de uma obra já vem com ela escolhida */
-      if (b.dataset.obraPadrao) {
-        const sel = document.getElementById('mf-obraId');
-        if (sel) sel.value = b.dataset.obraPadrao;
-      }
-      /* "+ Conta a pagar" do fornecedor: já vem no nome dele */
-      if (b.dataset.contaForn) {
-        const selT = document.getElementById('mf-tipo');
-        if (selT) selT.value = 'pagar';
-        const inpD = document.getElementById('mf-desc');
-        if (inpD) inpD.value = b.dataset.contaForn + ': ';
-        const selC = document.getElementById('mf-categoria');
-        if (selC) selC.value = 'material';
-        const jf = document.getElementById('mf-jaFoi');
-        if (jf) { jf.value = ''; aplicarCondicoes(); }
-        if (inpD) { inpD.focus(); inpD.setSelectionRange(inpD.value.length, inpD.value.length); }
-      }
-      /* "+ A receber" dentro da obra: já vem como receber, na obra certa */
-      if (b.dataset.contaReceber) {
-        const selO = document.getElementById('mf-obraId');
-        if (selO) selO.value = b.dataset.contaReceber;
-        const selT = document.getElementById('mf-tipo');
-        if (selT) selT.value = 'receber';
-        const selC = document.getElementById('mf-categoria');
-        if (selC) selC.value = 'recebimento cliente';
-      }
-    }));
-  document.querySelectorAll('#app [data-ed]').forEach(b =>
-    b.addEventListener('click', e => { e.stopPropagation(); abrirForm(b.dataset.ed, b.dataset.edId); }));
-
-  /* Obras */
-  document.querySelectorAll('[data-obra]').forEach(b =>
-    b.addEventListener('click', () => { obraAberta = b.dataset.obra; abaAtual = 'obras'; render(); window.scrollTo({ top: 0 }); }));
+  /* A secretária saiu da tela e foi pro WhatsApp. A função secretaria()
+     continua aqui de propósito: é ela que o servidor da fase 2 usa como
+     motor, então a regra continua sendo uma só. O que sumiu foi a caixa
+     de conversa, que virava concorrente do WhatsApp sem precisar. */
   const voltar = document.getElementById('btn-voltar');
   if (voltar) voltar.addEventListener('click', () => { obraAberta = null; render(); });
 
@@ -6457,7 +6495,7 @@ function renderExtrato() {
       '<span class="barra"></span>' +
       '<span class="txt"><b>' + esc(c.desc) + '</b>' +
         '<span>' + (o ? nomeComCor(o) + ' · ' : '') + '<span class="prazo">' + esc(prazoTxt(c.dias)) + '</span>' +
-        (c.venc ? ' · ' + dataBR(c.venc) : '') + '</span></span>' +
+        (c.venc ? ' · ' + dataBR(c.venc).slice(0, 5) : '') + '</span></span>' +
       '<span class="dir"><span class="money ' + (c.tipo === 'receber' ? 'in' : 'out') + '">' +
         (c.tipo === 'receber' ? '+' : '-') + ' ' + moeda(c.valor) + '</span><br>' +
         '<span class="linha-ed" style="justify-content:flex-end;margin-top:4px">' + acao + '</span></span>' +
@@ -6539,6 +6577,8 @@ function restaurarExemplo() {
   toast('Dados de exemplo restaurados.');
 }
 document.getElementById('btn-tema').addEventListener('click', alternarTema);
+document.getElementById('btn-tema-topo').addEventListener('click', alternarTema);
+document.getElementById('ir-inicio').addEventListener('click', () => irPara('painel'));
 document.getElementById('btn-reset').addEventListener('click', restaurarExemplo);
 
 /* ===================================================================
