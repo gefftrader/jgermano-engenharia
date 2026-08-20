@@ -191,7 +191,7 @@
     padding: 14px 28px; display: flex; align-items: center; gap: 14px;
   }
   h1, h2, h3 { font-weight: 600; letter-spacing: -.015em; }
-  .topbar h1 { margin: 0; font-size: 17px; letter-spacing: -.015em; font-weight: 600; min-width: 0;
+  .topbar h1 { margin: 0; font-size: 16px; letter-spacing: -.015em; font-weight: 600; min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   /* ===================================================================
@@ -225,11 +225,11 @@
     .extrato-painel { top: auto; height: 88vh; width: 100vw; border-left: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; }
   }
   .extrato-topo { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: var(--card); }
-  .extrato-topo b { font-size: 16px; }
+  .extrato-topo b { font-size: 15px; }
   .extrato-resumo { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); }
   .extrato-resumo > div { background: var(--card); padding: 12px 18px; }
   .extrato-resumo .k { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-  .extrato-resumo .v { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .extrato-resumo .v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
   .chips { display: flex; gap: 7px; padding: 12px 18px 4px; flex-wrap: wrap; }
   .chip {
     border: 1px solid var(--line); background: var(--card); border-radius: 99px;
@@ -269,7 +269,7 @@
       border-radius: 18px 18px 0 0; border-left: 0; border-right: 0; border-bottom: 0; }
   }
   .modal-topo { display: flex; align-items: center; gap: 10px; padding: 15px 18px; border-bottom: 1px solid var(--line); background: var(--card); }
-  .modal-topo b { font-size: 16px; }
+  .modal-topo b { font-size: 15px; }
   #modal-form { overflow-y: auto; padding: 16px 18px; margin-top: 0; }
   .modal-nota { grid-column: 1 / -1; margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
   .modal-rodape { display: flex; align-items: center; gap: 10px; padding: 13px 18px; border-top: 1px solid var(--line); background: var(--card); }
@@ -312,14 +312,14 @@
      ANÉIS
      =================================================================== */
   .aneis { display: grid; grid-template-columns: repeat(auto-fit, minmax(252px, 1fr)); gap: 12px; }
-  .anel-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 15px 18px 17px; }
+  .anel-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow); padding: 14px 16px 15px; }
   .anel-card.destaque { border-color: color-mix(in srgb, var(--petrol) 34%, var(--line)); }
   .anel-card h3 {
-    margin: 0; font-size: 10.5px; font-weight: 800; letter-spacing: .14em;
-    text-transform: uppercase; color: var(--muted);
+    margin: 0; font-size: 12.5px; font-weight: 500; letter-spacing: 0;
+    text-transform: none; color: var(--ink-2);
   }
   .anel-bloco { display: flex; flex-direction: column; align-items: center; gap: 13px; margin-top: 8px; }
-  .anel-v { font-size: 22px; font-weight: 600; fill: var(--ink); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  .anel-v { font-size: 20px; font-weight: 500; fill: var(--ink); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
   .anel-r { font-size: 9.5px; font-weight: 800; fill: var(--muted); letter-spacing: .14em; text-transform: uppercase; }
   /* A fatia cresce da estaca zero quando a tela desenha, e engorda no toque */
   @keyframes anel-cresce { from { stroke-dasharray: 0 9999; } }
@@ -349,7 +349,7 @@
     .shell { flex-direction: column; }
     .rail { display: none; }
     .topbar { padding: 12px 16px; }
-    .topbar h1 { font-size: 18px; }
+    .topbar h1 { font-size: 15.5px; }
     main { padding: 16px 16px calc(84px + env(safe-area-inset-bottom)); }
     .tabbar {
       display: flex; position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
@@ -414,24 +414,24 @@
   .eyebrow .push { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; font-size: 12.5px; }
   .card {
     background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
-    box-shadow: var(--shadow); padding: 16px 18px;
+    box-shadow: var(--shadow); padding: 14px 16px;
   }
 
   /* mosaico de números do painel */
-  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr)); gap: 12px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 10px; }
   /* KPI no formato dos outros painéis: cartão liso, sem tarja lateral,
      rótulo em caixa baixa e o número grande carregando a cor. Quem dá a
      informação é o número, não a moldura. */
   .tile {
     background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
-    padding: 16px; box-shadow: var(--shadow); position: relative; overflow: hidden;
+    padding: 14px 15px; box-shadow: var(--shadow); position: relative; overflow: hidden;
   }
-  .tile .k { font-size: 13px; font-weight: 500; color: var(--ink-2); letter-spacing: 0; text-transform: none; }
+  .tile .k { font-size: 12.5px; font-weight: 500; color: var(--ink-2); letter-spacing: 0; text-transform: none; }
   .tile .v {
-    font-size: 28px; font-weight: 600; font-variant-numeric: tabular-nums;
-    margin-top: 6px; letter-spacing: -.015em; line-height: 1.1;
+    font-size: 24px; font-weight: 500; font-variant-numeric: tabular-nums;
+    margin-top: 5px; letter-spacing: -.015em; line-height: 1.1;
   }
-  .tile .s { font-size: 12.5px; color: var(--muted); margin-top: 4px; }
+  .tile .s { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
   /* A cor vem do assunto do cartão, não de uma barrinha na borda */
   .tile.t-accent .v { color: var(--accent-ink); }
   .tile.t-petrol .v { color: var(--petrol-ink); }
@@ -440,7 +440,7 @@
   .v.pos { color: var(--good); }
   .v.neg { color: var(--crit); }
 
-  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   @media (max-width: 980px) { .grid-2, .grid-3 { grid-template-columns: 1fr; } }
 
@@ -529,7 +529,7 @@
   .extrato-pe { border-top: 1px solid var(--line); margin-top: 4px; padding-top: 14px; }
   .pe-caixa { display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
   .pe-rot { font-size: 11px; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; color: var(--muted); }
-  .pe-v { font-size: 22px; font-weight: 600; letter-spacing: -.03em; text-align: right; }
+  .pe-v { font-size: 20px; font-weight: 500; letter-spacing: -.03em; text-align: right; }
   .pe-sub { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
   .pe-atraso {
     display: flex; align-items: center; gap: 8px; margin-top: 12px;
@@ -636,7 +636,7 @@
   .receb { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; }
   .receb > div { display: flex; flex-direction: column; gap: 1px; }
   .receb .k { font-size: 10.5px; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); }
-  .receb .v { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .receb .v { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
   .receb .v.pos { color: var(--good); }
   .receb .s { font-size: 11.5px; color: var(--muted); }
 
@@ -765,7 +765,7 @@
   /* ===================================================================
      GRÁFICOS
      =================================================================== */
-  .chart-card h3 { margin: 0 0 2px; font-size: 15px; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 10px; }
+  .chart-card h3 { margin: 0 0 2px; font-size: 14px; font-weight: 600; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 10px; }
   .chart-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 12px; }
   .legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
@@ -806,7 +806,7 @@
   .progresso-par { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
   @media (max-width: 700px) { .progresso-par { grid-template-columns: 1fr; gap: 14px; } }
   .pgr .top { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px; color: var(--muted); }
-  .pgr .top b { margin-left: auto; font-size: 19px; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .pgr .top b { margin-left: auto; font-size: 17px; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
   .bar { height: 10px; border-radius: 99px; background: var(--card-2); border: 1px solid var(--line); overflow: hidden; margin-top: 6px; }
   .bar i { display: block; height: 100%; border-radius: 99px; transition: width .3s ease; }
   .bar i.exec { background: var(--petrol); }
@@ -848,13 +848,13 @@
   .pay-nome { font-weight: 700; }
   .pay-meta { font-size: 12.5px; color: var(--muted); }
   .pay-row.pago .pay-nome { text-decoration: line-through; color: var(--muted); }
-  .pay-total { display: flex; justify-content: space-between; align-items: center; padding-top: 14px; font-weight: 800; font-size: 16px; }
+  .pay-total { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; font-weight: 600; font-size: 15px; }
   /* mais e menos de dias trabalhados: alvo grande, feito pro polegar */
   .dias-ctrl { display: inline-flex; align-items: center; gap: 2px; flex: none;
     border: 1px solid var(--line); border-radius: 9px; background: var(--card-2); overflow: hidden; }
   .dias-ctrl b { min-width: 40px; text-align: center; font-variant-numeric: tabular-nums; font-size: 14px; }
   .dias-ctrl b em { font-style: normal; font-weight: 500; color: var(--muted); font-size: 12px; }
-  .dias-b { border: 0; background: none; cursor: pointer; width: 34px; height: 34px; font-size: 18px; color: var(--ink); line-height: 1; }
+  .dias-b { border: 0; background: none; cursor: pointer; width: 30px; height: 30px; font-size: 16px; color: var(--ink); line-height: 1; }
   .dias-b:hover { background: var(--line-2); }
 
   .alert-row { display: flex; gap: 11px; align-items: baseline; font-size: 14px; }
@@ -901,16 +901,16 @@
   .fer-topo:hover { background: var(--line-2); }
   .fer-item.aberta .fer-topo:hover { background: transparent; }
   .fer-qtd {
-    flex: none; min-width: 54px; height: 42px; border-radius: 12px;
+    flex: none; min-width: 48px; height: 38px; border-radius: 11px;
     background: var(--petrol-soft); color: var(--petrol-ink);
     display: flex; align-items: baseline; justify-content: center; gap: 1px;
-    font-weight: 800; font-size: 16px; font-variant-numeric: tabular-nums; padding: 11px 8px 0;
+    font-weight: 600; font-size: 14.5px; font-variant-numeric: tabular-nums; padding: 9px 8px 0;
   }
   .fer-qtd .de { font-size: 12.5px; font-weight: 700; opacity: .62; }
   .fer-qtd.zero { background: var(--card-2); color: var(--muted); border: 1px dashed var(--line); }
   .fer-item.atencao .fer-qtd { background: var(--crit-soft); color: var(--crit); }
   .fer-nome { min-width: 0; flex: 1; font-size: 14.5px; }
-  .fer-seta { flex: none; color: var(--muted); font-size: 18px; width: 20px; text-align: center; }
+  .fer-seta { flex: none; color: var(--muted); font-size: 16px; width: 20px; text-align: center; }
 
   /* Painel de remanejo: uma linha por lugar que tem a ferramenta */
   .remanejo { padding: 2px 16px 14px; display: flex; flex-direction: column; gap: 8px; }
@@ -936,10 +936,10 @@
 
   /* Card de lugar (galpão e cada obra): clica e desce a lista */
   .lugar-card {
-    display: flex; align-items: center; gap: 13px; width: 100%; cursor: pointer;
+    display: flex; align-items: center; gap: 11px; width: 100%; cursor: pointer;
     background: var(--card); border: 1px solid var(--line); border-radius: var(--raio-lg);
-    padding: 14px 16px; box-shadow: var(--shadow); color: var(--ink);
-    text-align: left; margin-top: 10px; border-left: 4px solid var(--accent);
+    padding: 12px 14px; box-shadow: var(--shadow); color: var(--ink);
+    text-align: left; margin-top: 8px; border-left: 4px solid var(--accent);
     transition: border-color .14s ease, box-shadow .14s ease;
   }
   .lugar-card:first-of-type { margin-top: 0; }
@@ -960,10 +960,10 @@
   .lugar-card.galpao.on { border-color: color-mix(in srgb, var(--petrol) 45%, var(--line)); border-left-color: var(--petrol); }
   .lugar-card.manut.on { border-color: color-mix(in srgb, var(--crit) 45%, var(--line)); border-left-color: var(--crit); }
   .lugar-card .n {
-    flex: none; min-width: 44px; height: 44px; border-radius: 12px; padding: 0 8px;
+    flex: none; min-width: 38px; height: 38px; border-radius: 11px; padding: 0 7px;
     background: var(--accent-soft); color: var(--accent-ink);
     display: flex; align-items: center; justify-content: center;
-    font-weight: 800; font-size: 17px; font-variant-numeric: tabular-nums;
+    font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums;
   }
   .lugar-card.galpao .n { background: var(--petrol-soft); color: var(--petrol-ink); }
   .lugar-card.vazia .n { background: var(--card-2); color: var(--muted); border: 1px dashed var(--line); }
@@ -988,12 +988,12 @@
   }
   .lugar-card.fase-grupo.vazia .txt b { color: var(--ink-2); }
   .lugar-card .txt { min-width: 0; flex: 1; }
-  .lugar-card .txt b { font-size: 15px; letter-spacing: -.01em; }
+  .lugar-card .txt b { font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
   .lugar-card .sub {
-    display: block; font-size: 12.5px; color: var(--muted); margin-top: 1px;
+    display: block; font-size: 11.5px; color: var(--muted); margin-top: 1px;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .lugar-card .seta { flex: none; color: var(--muted); font-size: 20px; width: 22px; text-align: center; }
+  .lugar-card .seta { flex: none; color: var(--muted); font-size: 17px; width: 22px; text-align: center; }
 
   /* O que desce quando o card abre */
   .lugar-painel {
