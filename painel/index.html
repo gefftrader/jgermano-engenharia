@@ -65,6 +65,9 @@
 
     /* Padrão dos sistemas da casa: mesmo raio, mesma sombra fina, mesma
        família de fonte. A paleta continua sendo a da JGermano. */
+    /* Altura do rodapé de navegação. Vira medida do sistema porque tem
+       gaveta que precisa parar em cima dele em vez de cobrir. */
+    --nav-h: calc(58px + env(safe-area-inset-bottom));
     --raio: 10px;
     --raio-lg: 16px;
     --shadow: 0 1px 2px rgba(43,36,32,.04);
@@ -224,7 +227,14 @@
     display: flex; flex-direction: column; box-shadow: var(--shadow-lg);
   }
   @media (max-width: 560px) {
-    .extrato-painel { top: auto; height: 88vh; width: 100vw; border-left: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; }
+    /* O extrato sobe até quase o topo, mas para em cima da navegação:
+       é de lá que ele veio e é por lá que se sai. Cobrir o rodapé
+       deixava o Jorge sem saída a não ser fechar a gaveta. */
+    .extrato-painel {
+      top: auto; bottom: var(--nav-h); height: min(78vh, calc(100vh - var(--nav-h) - 24px));
+      width: 100vw; border-left: 0; border-top: 1px solid var(--line);
+      border-radius: 18px 18px 0 0;
+    }
   }
   .extrato-topo { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: var(--card); }
   /* O extrato no formato dos outros sistemas: o mês encabeça o grupo, a
@@ -654,7 +664,7 @@
   /* Gaveta dos comprovantes de uma transação */
   #comp-caixa {
     position: fixed; inset: 0; z-index: 60; background: rgba(20,22,25,.55);
-    display: flex; align-items: flex-end; justify-content: center; padding: 0;
+    display: flex; align-items: flex-end; justify-content: center; padding: 0 0 var(--nav-h);
   }
   @media (min-width: 620px) { #comp-caixa { align-items: center; padding: 24px; } }
   .comp-painel {
