@@ -964,6 +964,7 @@
     border-top: 1px solid var(--line); margin-top: 12px;
   }
   .torres-pe > div { background: var(--card); padding: 10px 6px; text-align: center; }
+  .torres-nota { margin: 8px 0 0; font-size: 11px; color: var(--muted); text-align: center; }
   .torres-pe span { display: block; font-size: 11px; color: var(--muted); }
   .torres-pe b { font-size: 15px; font-weight: 600; }
 
@@ -5227,7 +5228,7 @@ function svgTorres(chaves, escopo) {
     const trio = [
       { v: d.ent, cor: 'var(--chart-2)', rot: 'Entrou' },
       { v: d.sai, cor: 'var(--chart-1)', rot: 'Saiu' },
-      { v: d.liq, cor: d.liq >= 0 ? 'var(--good)' : 'var(--crit)', rot: 'Sobrou' }
+      { v: d.liq, cor: d.liq >= 0 ? 'var(--good)' : 'var(--crit)', rot: 'Líquido' }
     ];
     trio.forEach((b, j) => {
       const x = x0 + j * (barW + gap);
@@ -5242,16 +5243,20 @@ function svgTorres(chaves, escopo) {
   const legenda = '<div class="torres-leg">' +
     '<span><i style="background:var(--chart-2)"></i>Entrou</span>' +
     '<span><i style="background:var(--chart-1)"></i>Saiu</span>' +
-    '<span><i style="background:var(--good)"></i>Sobrou</span>' +
+    '<span><i style="background:var(--good)"></i>Líquido</span>' +
   '</div>';
 
-  const ult = dados[dados.length - 1] || { ent: 0, sai: 0, liq: 0 };
+  /* O rodapé fala do mês que está sendo olhado lá em cima, não da soma
+     dos seis. Mostrar o acumulado aqui embaixo dos KPIs do mês fazia a
+     mesma tela dizer dois números diferentes pra mesma pergunta. */
+  const ult = dados[dados.length - 1] || { ent: 0, sai: 0, liq: 0, key: '' };
   const rodape = '<div class="torres-pe">' +
-    '<div><span>Entrou</span><b class="money in">' + moeda(dados.reduce((a, d) => a + d.ent, 0)) + '</b></div>' +
-    '<div><span>Saiu</span><b class="money out">' + moeda(dados.reduce((a, d) => a + d.sai, 0)) + '</b></div>' +
-    '<div><span>Líquido</span><b class="money ' + (dados.reduce((a, d) => a + d.liq, 0) >= 0 ? 'in' : 'out') + '">' +
-      moeda(dados.reduce((a, d) => a + d.liq, 0)) + '</b></div>' +
-  '</div>';
+    '<div><span>Entrou</span><b class="money in">' + moeda(ult.ent) + '</b></div>' +
+    '<div><span>Saiu</span><b class="money out">' + moeda(ult.sai) + '</b></div>' +
+    '<div><span>Líquido</span><b class="money ' + (ult.liq >= 0 ? 'in' : 'out') + '">' + moeda(ult.liq) + '</b></div>' +
+  '</div>' +
+  '<p class="torres-nota">' + (ult.key ? nomeMes(ult.key) + ' de ' + ult.key.split('-')[0] : '') +
+    '. Nas colunas, os ' + dados.length + ' meses anteriores.</p>';
 
   return legenda +
     '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Entrou, saiu e sobrou por mês" style="width:100%;height:auto;display:block">' +
@@ -6162,7 +6167,7 @@ function telaFinanceiro() {
       <div class="torres-pe" style="margin-top:10px">
         <div><span>Entrou</span><b class="money in">${moeda(ent)}</b></div>
         <div><span>Saiu</span><b class="money out">${moeda(sai)}</b></div>
-        <div><span>Sobrou</span><b class="money ${ent - sai >= 0 ? 'in' : 'out'}">${moeda(ent - sai)}</b></div>
+        <div><span>Líquido</span><b class="money ${ent - sai >= 0 ? 'in' : 'out'}">${moeda(ent - sai)}</b></div>
       </div>
     </div>`;
 
@@ -6197,7 +6202,7 @@ function telaFinanceiro() {
     <div class="tiles" id="fin-tiles" data-chave="${finTodos ? 'tudo' : mk}|${filtroFinObra}">
       <div class="tile t-good"><div class="k">Entradas</div><div class="v pos" data-conta="${ent}"${de('ent')}>${moeda(ent)}</div><div class="s">${escopoSub}</div></div>
       <div class="tile t-crit"><div class="k">Saídas</div><div class="v neg" data-conta="${sai}"${de('sai')}>${moeda(sai)}</div><div class="s">${escopoSub}</div></div>
-      <div class="tile ${ent - sai >= 0 ? 't-petrol' : 't-crit'}"><div class="k">Saldo</div><div class="v ${ent - sai >= 0 ? 'pos' : 'neg'}" data-conta="${ent - sai}"${de('saldo')}>${moeda(ent - sai)}</div><div class="s">${escopoSub}</div></div>
+      <div class="tile ${ent - sai >= 0 ? 't-petrol' : 't-crit'}"><div class="k">Líquido</div><div class="v ${ent - sai >= 0 ? 'pos' : 'neg'}" data-conta="${ent - sai}"${de('saldo')}>${moeda(ent - sai)}</div><div class="s">${escopoSub}</div></div>
     </div>
 
     <div class="eyebrow" style="margin-top:16px">Mês a mês</div>
