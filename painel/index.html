@@ -227,6 +227,37 @@
     .extrato-painel { top: auto; height: 88vh; width: 100vw; border-left: 0; border-top: 1px solid var(--line); border-radius: 18px 18px 0 0; }
   }
   .extrato-topo { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-bottom: 1px solid var(--line); background: var(--card); }
+  /* O extrato no formato dos outros sistemas: o mês encabeça o grupo, a
+     linha traz data e descrição juntas, e os selos dizem o resto. */
+  .ext-mes {
+    font-size: 11px; font-weight: 600; letter-spacing: .1em; color: var(--muted);
+    padding: 16px 18px 6px; border-bottom: 1px solid var(--line-2);
+  }
+  .ext-linha {
+    display: flex; gap: 12px; align-items: flex-start; justify-content: space-between;
+    padding: 12px 18px; border-bottom: 1px solid var(--line-2);
+  }
+  .ext-txt { min-width: 0; flex: 1; }
+  .ext-txt b { display: block; font-size: 13.5px; font-weight: 500; line-height: 1.35; }
+  .ext-selos { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 5px; }
+  .selo {
+    display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 600;
+    padding: 2px 8px; border-radius: 20px; white-space: nowrap;
+  }
+  .selo.receber { background: var(--good-soft); color: var(--good); }
+  .selo.pagar { background: var(--warn-soft); color: var(--warn); }
+  .selo.atrasado { background: var(--crit-soft); color: var(--crit); }
+  .selo.obra { background: var(--card-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .ext-dir { flex: none; text-align: right; }
+  .ext-dir .money { font-size: 14px; font-weight: 600; }
+  .ext-linha.vencida .ext-txt b { color: var(--crit); }
+  .extrato-totais {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line);
+    border-top: 1px solid var(--line);
+  }
+  .extrato-totais > div { background: var(--card); padding: 12px 18px; text-align: center; }
+  .extrato-totais span { display: block; font-size: 11.5px; color: var(--muted); }
+  .extrato-totais b { font-size: 17px; font-weight: 600; }
   .extrato-topo b { font-size: 15px; }
   .extrato-resumo { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border-bottom: 1px solid var(--line); }
   .extrato-resumo > div { background: var(--card); padding: 12px 18px; }
@@ -350,7 +381,11 @@
   /* O rodapé é sempre escuro, claro ou não. É a âncora visual do
      sistema: muda o que está dentro, nunca a barra. */
   .tabbar {
-    --nav-bg: #241F1B; --nav-txt: #F3EFEA; --nav-mudo: #A79C90; display: none; }
+    /* Rodapé em petróleo escuro, a cor da casa. Fixo nos dois temas: é a
+       âncora da tela, e âncora que muda de cor deixa de ancorar.
+       Tons conferidos no cálculo de contraste: texto ativo 10,4 e o
+       apagado 5,2 contra o fundo. */
+    --nav-bg: #0B3F3B; --nav-txt: #EAF3F1; --nav-mudo: #8FB3AF; display: none; }
 
   @media (max-width: 900px) {
     .shell { flex-direction: column; }
@@ -372,10 +407,12 @@
     .tabbar button span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .tabbar button svg { stroke: currentColor; fill: none; stroke-width: 1.7; }
     .tabbar button.on { color: var(--nav-txt); }
-    .tabbar button.on svg { color: var(--accent); }
+    .tabbar button.on svg { color: #F2864F; }
     .tabbar button .badge {
+      /* Vermelho escuro some no verde do rodapé, então aqui ele inverte:
+         fundo claro de alarme com a tinta escura por cima. */
       position: absolute; top: 1px; right: 50%; margin-right: -18px;
-      background: var(--crit); color: var(--on-crit); font-size: 9.5px; font-weight: 700;
+      background: #F7B3A8; color: #5A1E16; font-size: 9.5px; font-weight: 700;
       min-width: 15px; height: 15px; border-radius: 99px;
       display: flex; align-items: center; justify-content: center; padding: 0 4px;
     }
@@ -1301,7 +1338,7 @@
       <button class="icon-btn" id="btn-tema-topo" style="margin-left:auto;flex:none" title="Tema claro ou escuro" aria-label="Alternar tema claro e escuro"></button>
       <button class="extrato-btn" id="btn-extrato" style="margin-left:0" aria-haspopup="dialog" aria-expanded="false">
         <svg width="17" height="17" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.5h12a1 1 0 0 1 1 1v18l-3.2-2-3.4 2-3.4-2L6 21.5v-18a1 1 0 0 1 1-1z"/><path d="M9.5 8h5M9.5 12h5"/></svg>
-        <span id="extrato-rot">Em aberto</span>
+        <span id="extrato-rot">Extrato</span>
         <span class="extrato-badge" id="extrato-badge">0</span>
       </button>
     </header>
@@ -1327,9 +1364,9 @@
 </div>
 
 <div class="extrato-fundo" id="extrato-fundo" hidden></div>
-<aside class="extrato-painel" id="extrato-painel" role="dialog" aria-label="Contas em aberto" hidden>
+<aside class="extrato-painel" id="extrato-painel" role="dialog" aria-label="Extrato" hidden>
   <div class="extrato-topo">
-    <b>Contas em aberto</b>
+    <b>Extrato</b>
     <button class="icon-btn push" id="btn-fechar-extrato" aria-label="Fechar">
       <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
     </button>
@@ -1337,6 +1374,7 @@
   <div class="extrato-resumo" id="extrato-resumo"></div>
   <div class="chips" id="extrato-chips"></div>
   <div class="extrato-lista" id="extrato-lista"></div>
+  <div class="extrato-totais" id="extrato-totais"></div>
   <div class="extrato-rodape">
     <div class="extrato-nota" id="extrato-nota"></div>
     <button class="btn small petrol" data-novo="conta">+ Nova conta</button>
@@ -5190,8 +5228,8 @@ function telaPainel() {
     ${barraPeriodo()}
     <div class="tiles">
       <button class="tile t-accent clicavel" data-fase-ir="execucao" title="Ver as obras em execução"><div class="k">Em execução</div><div class="v">${emExecucao.length}</div><div class="s">${moeda(contratado)} contratados</div></button>
-      <div class="tile t-petrol"><div class="k">A receber</div><div class="v">${moeda(aReceber)}</div><div class="s">falta entrar dos contratos</div></div>
-      <div class="tile ${pend.length ? 't-crit' : 't-good'}"><div class="k">A pagar na folha</div><div class="v">${moeda(aPagar)}</div><div class="s">${pend.length} pendente${pend.length === 1 ? '' : 's'}</div></div>
+      <button class="tile t-petrol clicavel" id="ir-extrato" title="Ver o extrato"><div class="k">A receber</div><div class="v">${moeda(aReceber)}</div><div class="s">falta entrar dos contratos</div></button>
+      <button class="tile ${pend.length ? 't-crit' : 't-good'} clicavel" data-aba="pagamentos" title="Ver a folha"><div class="k">A pagar na folha</div><div class="v">${moeda(aPagar)}</div><div class="s">${pend.length} pendente${pend.length === 1 ? '' : 's'}</div></button>
     </div>
 
     ${emExecucao.length ? `<button class="eyebrow eyebrow-btn" id="tog-obras-inicio">
@@ -6570,6 +6608,10 @@ function ligarEventos() {
       executar('excluirDoc', b.dataset.docDel);
     }));
 
+  /* Do KPI direto pro extrato: quem olha "a receber" quer ver o que é */
+  const irExt = document.getElementById('ir-extrato');
+  if (irExt) irExt.addEventListener('click', abrirExtrato);
+
   const togObras = document.getElementById('tog-obras-inicio');
   if (togObras) togObras.addEventListener('click', () => { obrasAbertasInicio = !obrasAbertasInicio; render(); });
 
@@ -6719,34 +6761,64 @@ function renderExtrato() {
   const receber = todas.filter(c => c.tipo === 'receber').reduce((s, c) => s + c.valor, 0);
   const pagar = todas.filter(c => c.tipo === 'pagar').reduce((s, c) => s + c.valor, 0);
 
-  document.getElementById('extrato-resumo').innerHTML =
-    '<div><div class="k">A receber</div><div class="v pos">' + moeda(receber) + '</div></div>' +
-    '<div><div class="k">A pagar</div><div class="v neg">' + moeda(pagar) + '</div></div>';
+  /* O resumo desceu pro rodapé, como no outro sistema: o olho corre a
+     lista e encontra o total no fim, não antes de ver o que tem. */
+  document.getElementById('extrato-resumo').innerHTML = '';
 
   const conta = t => todas.filter(c => t === 'todos' || c.tipo === t).length;
   document.getElementById('extrato-chips').innerHTML =
-    [['todos','Em aberto'],['receber','A receber'],['pagar','A pagar']].map(([id, rot]) =>
-      '<button class="chip ' + (filtroExtrato === id ? 'on' : '') + '" data-chip="' + id + '">' + rot + ' ' + conta(id) + '</button>'
+    [['todos', 'Em aberto'], ['receber', 'Entradas'], ['pagar', 'Saídas']].map(([id, rot]) =>
+      '<button class="chip ' + (filtroExtrato === id ? 'on' : '') + '" data-chip="' + id + '">' +
+        rot + (conta(id) ? ' ' + conta(id) : '') + '</button>'
     ).join('') + '<span class="push">' + selOrdem('conta') + '</span>';
 
   const lista = todas.filter(c => filtroExtrato === 'todos' || c.tipo === filtroExtrato);
-  document.getElementById('extrato-lista').innerHTML = lista.length ? lista.map(c => {
-    const o = obra(c.obraId);
-    const vencida = c.dias !== null && c.dias < 0;
-    const acao = c.origem === 'folha'
-      ? '<button class="btn small" data-ver-folha="1">Ver a folha</button>'
-      : '<button class="btn small ' + (c.tipo === 'receber' ? 'petrol' : 'primary') + '" data-quitar="' + c.id + '">' + (c.tipo === 'receber' ? 'Recebi' : 'Paguei') + '</button>' +
-        btnEd('conta', c.id, c.desc);
-    return '<div class="conta ' + c.tipo + (vencida ? ' vencida' : '') + '">' +
-      '<span class="barra"></span>' +
-      '<span class="txt"><b>' + esc(c.desc) + '</b>' +
-        '<span>' + (o ? nomeComCor(o) + ' · ' : '') + '<span class="prazo">' + esc(prazoTxt(c.dias)) + '</span>' +
-        (c.venc ? ' · ' + dataBR(c.venc).slice(0, 5) : '') + '</span></span>' +
-      '<span class="dir"><span class="money ' + (c.tipo === 'receber' ? 'in' : 'out') + '">' +
-        (c.tipo === 'receber' ? '+' : '-') + ' ' + moeda(c.valor) + '</span><br>' +
-        '<span class="linha-ed" style="justify-content:flex-end;margin-top:4px">' + acao + '</span></span>' +
-    '</div>';
-  }).join('') : '<div class="empty">Nada em aberto ' + (verTudoExtrato ? '' : 'com vencimento neste mês') + '. Bom sinal.</div>';
+
+  /* Agrupado por mês de vencimento, com o mês em cima do grupo */
+  const grupos = [];
+  lista.forEach(c => {
+    const chave = String(c.venc || '').slice(0, 7) || 'sem';
+    let g = grupos.find(x => x.chave === chave);
+    if (!g) { g = { chave, itens: [] }; grupos.push(g); }
+    g.itens.push(c);
+  });
+  grupos.sort((a, b) => cmpTxt(a.chave, b.chave));
+
+  const rotuloMes = ch => ch === 'sem' ? 'Sem data'
+    : (nomeMes(ch) + ' ' + ch.split('-')[0]).toUpperCase();
+
+  document.getElementById('extrato-lista').innerHTML = grupos.length ? grupos.map(g =>
+    '<div class="ext-mes">' + esc(rotuloMes(g.chave)) + '</div>' +
+    g.itens.map(c => {
+      const o = obra(c.obraId);
+      const vencida = c.dias !== null && c.dias < 0;
+      const acao = c.origem === 'folha'
+        ? '<button class="btn small" data-ver-folha="1">Ver a folha</button>'
+        : '<button class="btn small ' + (c.tipo === 'receber' ? 'petrol' : 'primary') + '" data-quitar="' + c.id + '">' +
+            (c.tipo === 'receber' ? 'Recebi' : 'Paguei') + '</button>' + btnEd('conta', c.id, c.desc);
+      return '<div class="ext-linha' + (vencida ? ' vencida' : '') + '">' +
+        '<span class="ext-txt">' +
+          '<b>' + (c.venc ? dataBR(c.venc).slice(0, 5) + ' · ' : '') + esc(c.desc) + '</b>' +
+          '<span class="ext-selos">' +
+            '<span class="selo ' + (c.tipo === 'receber' ? 'receber' : 'pagar') + '">' +
+              (c.tipo === 'receber' ? 'a receber' : 'a pagar') + '</span>' +
+            (vencida ? '<span class="selo atrasado">atrasado · venceu ' + dataBR(c.venc).slice(0, 5) + '</span>' : '') +
+            (o ? '<span class="selo obra">' + pontoObra(o) + esc(o.nome) + '</span>' : '') +
+          '</span>' +
+        '</span>' +
+        '<span class="ext-dir">' +
+          '<span class="money ' + (c.tipo === 'receber' ? 'in' : 'out') + '">' +
+            (c.tipo === 'receber' ? '+' : '-') + ' ' + moeda(c.valor) + '</span>' +
+          '<span class="linha-ed" style="justify-content:flex-end;margin-top:5px">' + acao + '</span>' +
+        '</span>' +
+      '</div>';
+    }).join('')
+  ).join('') : '<div class="empty">Nada em aberto ' + (verTudoExtrato ? '' : 'com vencimento neste mês') + '. Bom sinal.</div>';
+
+  /* O par de totais fecha a gaveta embaixo */
+  document.getElementById('extrato-totais').innerHTML =
+    '<div><span>A receber</span><b class="money in">' + moeda(receber) + '</b></div>' +
+    '<div><span>A pagar</span><b class="money out">' + moeda(pagar) + '</b></div>';
 
   /* Recorte: vencidas de qualquer mês + o que vence neste mês */
   const futuras = contasFuturas();
