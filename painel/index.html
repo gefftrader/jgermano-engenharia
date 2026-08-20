@@ -5011,9 +5011,9 @@ let abaAtual = 'painel';
 let obraAberta = null;
 let filtroFin = 'todos';
 let filtroFinObra = 'todas';
-let mesFinDesloc = 0;        // 0 = mês atual, -1 = mês passado...
-let mesPainel = 0;           // mês que o painel mostra (a data é clicável)
-let mesPag = 0;              // mês da tela de pagamentos
+/* Um período só, valendo no Início, no Financeiro e na Folha. Antes cada
+   tela tinha o navegador de mês dela, e trocar de aba jogava o Jorge de
+   volta pro mês atual sem ele ter pedido. */
 let mostrarResumo = false;
 let secFoco = false;         // devolve o foco ao campo da secretária após o render
 let sobraAlvo = null;        // material da vez no formulário de sobra
@@ -5150,6 +5150,17 @@ function mesesAtras(n, ate) {
   for (let i = n - 1; i >= 0; i--) lista.push(mesKey(fim - i));
   return lista;
 }
+/* Os meses que o período escolhido cobre. Mês solto traz os seis
+   últimos pra dar contexto; ano inteiro traz os doze (ou até o mês de
+   hoje, que mês que ainda não aconteceu não vira coluna vazia). */
+function mesesDoPeriodo() {
+  if (periodo.tipo !== 'ano') return mesesAtras(6, periodo.desloc);
+  const hoje = new Date(), ano = hoje.getFullYear() + periodo.desloc;
+  const ate = periodo.desloc === 0 ? hoje.getMonth() + 1 : 12;
+  const lista = [];
+  for (let m = 1; m <= ate; m++) lista.push(ano + '-' + String(m).padStart(2, '0'));
+  return lista;
+}
 function meses3(desloc) {
   const b = desloc || 0;
   return [mesKey(b - 2), mesKey(b - 1), mesKey(b)].map(k => ({ key: k, rot: nomeMes(k) }));
@@ -5196,7 +5207,7 @@ function svgFluxo(desloc) {
    Quando o mês fecha no vermelho a coluna do líquido desce da linha,
    que é a leitura mais honesta possível de prejuízo.
    =================================================================== */
-function svgTorres(chaves, escopo) {
+function svgTorres(chaves, escopo, somar) {
   const dados = chaves.map(k => {
     const doMes = state.lancamentos.filter(l => String(l.data).startsWith(k) && (!escopo || escopo(l)));
     const ent = doMes.filter(l => l.tipo === 'entrada').reduce((a, l) => a + l.valor, 0);
@@ -5253,14 +5264,23 @@ function svgTorres(chaves, escopo) {
   /* O rodapé fala do mês que está sendo olhado lá em cima, não da soma
      dos seis. Mostrar o acumulado aqui embaixo dos KPIs do mês fazia a
      mesma tela dizer dois números diferentes pra mesma pergunta. */
+  /* Quando o período é um ano, o rodapé soma o ano; quando é um mês, ele
+     repete o mês que está lá em cima nos KPIs. Nos dois casos o rodapé
+     responde a mesma pergunta que o topo da tela, e não outra. */
   const ult = dados[dados.length - 1] || { ent: 0, sai: 0, liq: 0, key: '' };
+  const pe = somar
+    ? dados.reduce((a, d) => ({ ent: a.ent + d.ent, sai: a.sai + d.sai, liq: a.liq + d.liq, key: ult.key }),
+                   { ent: 0, sai: 0, liq: 0, key: ult.key })
+    : ult;
+  const nota = !ult.key ? ''
+    : somar ? 'Ano de ' + ult.key.split('-')[0] + ', somado. Cada coluna é um mês.'
+            : nomeMes(ult.key) + ' de ' + ult.key.split('-')[0] + '. Nas colunas, os ' + dados.length + ' meses anteriores.';
   const rodape = '<div class="torres-pe">' +
-    '<div><span>Entrou</span><b class="money in">' + moeda(ult.ent) + '</b></div>' +
-    '<div><span>Saiu</span><b class="money out">' + moeda(ult.sai) + '</b></div>' +
-    '<div><span>Líquido</span><b class="money ' + (ult.liq >= 0 ? 'in' : 'out') + '">' + moeda(ult.liq) + '</b></div>' +
+    '<div><span>Entrou</span><b class="money in">' + moeda(pe.ent) + '</b></div>' +
+    '<div><span>Saiu</span><b class="money out">' + moeda(pe.sai) + '</b></div>' +
+    '<div><span>Líquido</span><b class="money ' + (pe.liq >= 0 ? 'in' : 'out') + '">' + moeda(pe.liq) + '</b></div>' +
   '</div>' +
-  '<p class="torres-nota">' + (ult.key ? nomeMes(ult.key) + ' de ' + ult.key.split('-')[0] : '') +
-    '. Nas colunas, os ' + dados.length + ' meses anteriores.</p>';
+  '<p class="torres-nota">' + nota + '</p>';
 
   return legenda +
     '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Entrou, saiu e sobrou por mês" style="width:100%;height:auto;display:block">' +
@@ -5291,7 +5311,10 @@ function abrirPeriodo() {
   const lista = document.getElementById('periodo-lista');
   const ano = new Date().getFullYear();
   let h = '';
-  for (let i = 0; i > -6; i--) {
+  /* Doze meses pra trás, porque agora esta lista é o único caminho: o
+     Financeiro e a Folha perderam o navegador próprio. Mais longe que
+     isso se olha pelo ano inteiro, logo abaixo. */
+  for (let i = 0; i > -12; i--) {
     const mk = mesKey(i);
     const marcado = periodo.tipo === 'mes' && periodo.desloc === i;
     h += '<div class="periodo-op' + (marcado ? ' on' : '') + '" data-per="mes|' + i + '">' +
@@ -5415,7 +5438,7 @@ function telaPainel() {
       <span class="data">${esc(dataHoje)}</span>
     </div>
 
-    ${barraPeriodo()}
+    <div class="eyebrow">A empresa hoje</div>
     <div class="tiles">
       ${(() => {
         /* O número que ele abre o app pra ver. Fato e projeção lado a
@@ -5428,7 +5451,7 @@ function telaPainel() {
           lg.cedo && !lg.emProjecao ? lg.cedo + ' obra' + (lg.cedo === 1 ? '' : 's') + ' cedo demais pra dizer' : ''
         ].filter(Boolean).join(' · ');
         return `<button class="tile ${total >= 0 ? 't-good' : 't-crit'} clicavel" data-aba="obras" title="Ver as obras">
-          <div class="k">Lucro</div>
+          <div class="k">Lucro das obras</div>
           <div class="v">${moeda(total)}</div>
           <div class="s">${sub || 'sem contrato lançado ainda'}</div>
         </button>`;
@@ -5473,24 +5496,15 @@ function telaPainel() {
     </div>` : ''}
 
 
-    <div class="eyebrow">Dinheiro
-      <span class="push mes-nav">
-        <button class="icon-btn" id="mes-p-ant" aria-label="Mês anterior">
-          <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-        <b>${tituloM}</b>
-        <button class="icon-btn" id="mes-p-prox" aria-label="Mês seguinte" ${mesPainel >= 0 ? 'disabled style="opacity:.35;cursor:default"' : ''}>
-          <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-        </button>
-      </span>
-    </div>
+    <div class="eyebrow">Dinheiro</div>
+    ${barraPeriodo()}
     <div class="aneis">
       <div class="anel-card destaque">
-        <h3>Sobrou</h3>
+        <h3>Líquido</h3>
         ${saldo >= 0
           ? svgAnel([
               { rot:'Saiu', v: sai, cor:'var(--accent)' },
-              { rot:'Sobrou', v: saldo, cor:'var(--petrol)' }
+              { rot:'Líquido', v: saldo, cor:'var(--petrol)' }
             ], moeda(saldo), 'líquido', 176)
           : svgAnel([
               { rot:'Entrou', v: ent, cor:'var(--petrol)' },
@@ -5514,7 +5528,7 @@ function telaPainel() {
     <div class="grid-2" style="margin-top:12px">
       <div class="card chart-card">
         <h3>Entradas x saídas</h3>
-        ${svgFluxo(mesPainel)}
+        ${svgTorres(mesesDoPeriodo(), null, periodo.tipo === 'ano')}
       </div>
       <div class="card chart-card">
         <h3>Custo por obra</h3>
@@ -5967,9 +5981,10 @@ function mesDaFolha(rotulo) {
   return m && a ? a[1] + '-' + m[1] : '';
 }
 function telaPagamentos() {
-  const mk = mesKey(mesPag);
-  const tituloMes = nomeMes(mk) + ' de ' + mk.split('-')[0];
-  const atual = mesPag === 0;
+  const mk = mesKey(periodo.tipo === 'mes' ? periodo.desloc : 0);
+  /* A folha aberta é sempre a de hoje: em mês passado, ou no ano
+     inteiro, o que se olha é o histórico já fechado. */
+  const atual = periodo.tipo === 'mes' && periodo.desloc === 0;
   const linhas = atual ? state.folha.linhas : [];
   const pendentes = linhas.filter(l => !l.pago);
   const aPagarFolha = pendentes.reduce((s, l) => s + l.valor, 0);
@@ -5980,18 +5995,7 @@ function telaPagamentos() {
   const fechadasMes = state.folhas.filter(f => mesDaFolha(f.semana) === mk);
 
   return `
-    <div class="eyebrow" style="margin-top:0">
-      <span class="mes-nav">
-        <button class="icon-btn" id="pag-mes-ant" aria-label="Mês anterior">
-          <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>
-        <b>${tituloMes}</b>
-        <button class="icon-btn" id="pag-mes-prox" aria-label="Mês seguinte" ${mesPag >= 0 ? 'disabled style="opacity:.35;cursor:default"' : ''}>
-          <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-        </button>
-        ${mesPag !== 0 ? '<button class="btn small" id="pag-mes-hoje">Mês atual</button>' : ''}
-      </span>
-    </div>
+    ${barraPeriodo()}
 
     <div class="tiles">
       <div class="tile t-good"><div class="k">Pago no mês</div><div class="v">${moeda(pagoMes)}</div><div class="s">mão de obra</div></div>
@@ -6078,7 +6082,6 @@ function telaPagamentos() {
    valor antigo até o novo em vez de trocar de uma vez. */
 let finAnt = null;
 let finChave = '';
-let finTodos = false;        // o financeiro pode sair do mês e ver a história inteira
 function animarFinanceiro() {
   const tiles = document.getElementById('fin-tiles');
   if (!tiles) { finChave = ''; return; }
@@ -6127,15 +6130,14 @@ function telaFinanceiro() {
   /* Se a obra do filtro foi excluída, o filtro volta pro todas sozinho */
   if (filtroFinObra !== 'todas' && filtroFinObra !== 'geral' && !obra(filtroFinObra)) filtroFinObra = 'todas';
   /* O mês navega: setas voltam no tempo, "mês atual" traz de volta */
-  const mk = mesKey(mesFinDesloc);
-  const tituloMes = finTodos ? 'Todos os meses' : nomeMes(mk) + ' de ' + mk.split('-')[0];
+  const mk = mesKey(periodo.tipo === 'mes' ? periodo.desloc : 0);
   /* A obra escolhida é o escopo da tela inteira, não só da listinha de
      baixo. Antes os três números vinham do mês todo e não mudavam
      quando o Jorge trocava de obra, o que fazia o filtro parecer
      quebrado. O filtro de tipo continua valendo só pra lista. */
   const noEscopo = l => filtroFinObra === 'todas'
     || (filtroFinObra === 'geral' ? !l.obraId : l.obraId === filtroFinObra);
-  const doMes = state.lancamentos.filter(l => (finTodos || l.data.startsWith(mk)) && noEscopo(l));
+  const doMes = state.lancamentos.filter(l => noPeriodo(l) && noEscopo(l));
   const lancs = ordenarPor('lanc', doMes.filter(l => filtroFin === 'todos' || l.tipo === filtroFin));
   const ent = doMes.filter(l => l.tipo === 'entrada').reduce((a, l) => a + l.valor, 0);
   const sai = doMes.filter(l => l.tipo === 'saída').reduce((a, l) => a + l.valor, 0);
@@ -6181,18 +6183,9 @@ function telaFinanceiro() {
   const de = k => ant && typeof ant[k] === 'number' ? ' data-conta-de="' + ant[k] + '"' : '';
 
   return `
+    ${barraPeriodo()}
     <div class="eyebrow" style="margin-top:0">
-      <span class="mes-nav">
-        ${finTodos ? '' : `<button class="icon-btn" id="mes-ant" aria-label="Mês anterior">
-          <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
-        </button>`}
-        <b>${tituloMes}</b>
-        ${finTodos ? '' : `<button class="icon-btn" id="mes-prox" aria-label="Mês seguinte" ${mesFinDesloc >= 0 ? 'disabled style="opacity:.35;cursor:default"' : ''}>
-          <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
-        </button>`}
-        <button class="btn small" id="mes-todos">${finTodos ? 'Ver por mês' : 'Todos os meses'}</button>
-        ${!finTodos && mesFinDesloc !== 0 ? '<button class="btn small" id="mes-hoje">Mês atual</button>' : ''}
-      </span>
+      <span>Resumo</span>
       <span class="push linha-ed">
         <label class="ord"><span class="ord-lab">Obra</span>
           <select id="filtro-fin-obra" style="max-width:236px" aria-label="Escopo do financeiro: filtrar por obra">
@@ -6203,7 +6196,7 @@ function telaFinanceiro() {
         </label>
       </span>
     </div>
-    <div class="tiles" id="fin-tiles" data-chave="${finTodos ? 'tudo' : mk}|${filtroFinObra}">
+    <div class="tiles" id="fin-tiles" data-chave="${periodo.tipo}|${periodo.desloc}|${filtroFinObra}">
       <div class="tile t-good"><div class="k">Entradas</div><div class="v pos" data-conta="${ent}"${de('ent')}>${moeda(ent)}</div><div class="s">${escopoSub}</div></div>
       <div class="tile t-crit"><div class="k">Saídas</div><div class="v neg" data-conta="${sai}"${de('sai')}>${moeda(sai)}</div><div class="s">${escopoSub}</div></div>
       <div class="tile ${ent - sai >= 0 ? 't-petrol' : 't-crit'}"><div class="k">Líquido</div><div class="v ${ent - sai >= 0 ? 'pos' : 'neg'}" data-conta="${ent - sai}"${de('saldo')}>${moeda(ent - sai)}</div><div class="s">${escopoSub}</div></div>
@@ -6211,7 +6204,7 @@ function telaFinanceiro() {
 
     <div class="eyebrow" style="margin-top:16px">Mês a mês</div>
     <div class="card chart-card">
-      ${svgTorres(mesesAtras(finTodos ? 12 : 6, finTodos ? 0 : mesFinDesloc), noEscopo)}
+      ${svgTorres(mesesDoPeriodo(), noEscopo, periodo.tipo === 'ano')}
     </div>
 
     <div class="eyebrow">Por categoria</div>
@@ -6753,13 +6746,7 @@ function ligarEventos() {
   const pagarTodos = document.getElementById('btn-pagar-todos');
   if (pagarTodos) pagarTodos.addEventListener('click', () => executar('pagarFolhaToda'));
 
-  /* Pagamentos: navegação por mês e refazer */
-  const pagAnt = document.getElementById('pag-mes-ant');
-  if (pagAnt) pagAnt.addEventListener('click', () => { mesPag = Math.max(-36, mesPag - 1); render(); });
-  const pagProx = document.getElementById('pag-mes-prox');
-  if (pagProx) pagProx.addEventListener('click', () => { if (mesPag < 0) { mesPag += 1; render(); } });
-  const pagHoje = document.getElementById('pag-mes-hoje');
-  if (pagHoje) pagHoje.addEventListener('click', () => { mesPag = 0; render(); });
+  /* Pagamentos: refazer a folha */
   const btnRefazer = document.getElementById('btn-refazer');
   if (btnRefazer) btnRefazer.addEventListener('click', () => {
     const quinzena = (state.folha.periodo || 'quinzena') === 'quinzena';
@@ -6783,22 +6770,18 @@ function ligarEventos() {
   if (filtro) filtro.addEventListener('change', () => { filtroFin = filtro.value; render(); });
   document.querySelectorAll('[data-filtro-fin]').forEach(b =>
     b.addEventListener('click', () => { filtroFin = b.dataset.filtroFin; render(); }));
-  const btnTodosMeses = document.getElementById('mes-todos');
-  if (btnTodosMeses) btnTodosMeses.addEventListener('click', () => { finTodos = !finTodos; render(); });
+  /* O financeiro não tem mais navegador próprio: ele lê a mesma barra de
+     período do Início. Uma escolha só, valendo nas duas telas. */
   const filtroObra = document.getElementById('filtro-fin-obra');
   if (filtroObra) filtroObra.addEventListener('change', () => { filtroFinObra = filtroObra.value; render(); });
-  const mesAnt = document.getElementById('mes-ant');
-  if (mesAnt) mesAnt.addEventListener('click', () => { mesFinDesloc = Math.max(-36, mesFinDesloc - 1); render(); });
-  const mesProx = document.getElementById('mes-prox');
-  if (mesProx) mesProx.addEventListener('click', () => { if (mesFinDesloc < 0) { mesFinDesloc += 1; render(); } });
-  const mesHoje = document.getElementById('mes-hoje');
-  if (mesHoje) mesHoje.addEventListener('click', () => { mesFinDesloc = 0; render(); });
+
+
+
 
   /* Painel: a data é clicável e navega os meses */
-  const mesPAnt = document.getElementById('mes-p-ant');
-  if (mesPAnt) mesPAnt.addEventListener('click', () => { mesPainel = Math.max(-36, mesPainel - 1); render(); });
-  const mesPProx = document.getElementById('mes-p-prox');
-  if (mesPProx) mesPProx.addEventListener('click', () => { if (mesPainel < 0) { mesPainel += 1; render(); } });
+  /* O navegador de mês do Início virou um só, a barra de período, que
+     mora coladinha na seção de dinheiro. O de antes continuava na tela
+     mexendo numa variável que ninguém mais lia. */
 
   /* Documentos da obra: upar, ver e excluir */
   const upDoc = document.getElementById('doc-upload');
@@ -7121,7 +7104,7 @@ function ligarEventosExtrato() {
     b.addEventListener('click', () => abrirForm(b.dataset.ed, b.dataset.edId)));
 
   const verFolha = document.querySelector('[data-ver-folha]');
-  if (verFolha) verFolha.addEventListener('click', () => { fecharExtrato(); mesPag = 0; irPara('pagamentos'); });
+  if (verFolha) verFolha.addEventListener('click', () => { fecharExtrato(); periodo = { tipo:'mes', desloc:0 }; irPara('pagamentos'); });
 }
 
 /* Do extrato direto pra dentro da obra. Fecha a gaveta antes, senão
@@ -7165,7 +7148,7 @@ function restaurarExemplo() {
      compras e a tela mostraria tudo zerado */
   migrar();
   salvar();
-  obraAberta = null; mesPag = 0; mesPainel = 0; mesFinDesloc = 0;
+  obraAberta = null;
   filtroFinObra = 'todas'; verTudoExtrato = false; mostrarResumo = false;
   irPara('painel');
   toast('Dados de exemplo restaurados.');
@@ -7234,7 +7217,7 @@ document.getElementById('backup-copiar').addEventListener('click', () => {
   menu.querySelectorAll('[data-fab-form]').forEach(b =>
     b.addEventListener('click', () => { fecharFab(); abrirForm(b.dataset.fabForm, null); }));
   document.getElementById('fab-resumo').addEventListener('click', () => {
-    fecharFab(); mostrarResumo = true; mesPag = 0; irPara('pagamentos');
+    fecharFab(); mostrarResumo = true; periodo = { tipo:'mes', desloc:0 }; irPara('pagamentos');
   });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !menu.hidden) fecharFab(); });
 })();
@@ -7274,7 +7257,7 @@ document.getElementById('backup-restaurar').addEventListener('click', () => {
   state = dados;
   migrar();
   salvar();
-  obraAberta = null; mesPag = 0; mesPainel = 0; mesFinDesloc = 0;
+  obraAberta = null;
   filtroFinObra = 'todas'; verTudoExtrato = false; mostrarResumo = false;
   fecharAjuda();
   irPara('painel');
