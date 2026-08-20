@@ -920,6 +920,32 @@
   .chart-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 12px; }
   .legend { display: flex; gap: 16px; font-size: 12.5px; color: var(--muted); margin-top: 8px; }
   .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  /* Legenda e rodapé das torres */
+  /* O lucro da obra, em destaque dentro do detalhe */
+  .lucro-caixa {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline;
+    background: var(--card-2); border: 1px solid var(--line); border-radius: 12px;
+    padding: 13px 15px; margin-top: 14px;
+  }
+  .lucro-caixa .k { font-size: 12.5px; color: var(--ink-2); font-weight: 500; }
+  .lucro-caixa .v { font-size: 22px; font-weight: 600; text-align: right; }
+  .lucro-caixa .m { grid-column: 2; font-size: 11.5px; color: var(--muted); text-align: right; }
+  .lucro-caixa .s { grid-column: 1 / -1; font-size: 11.5px; color: var(--muted); margin-top: 5px; line-height: 1.45; }
+  .lucro-caixa.bom { border-color: color-mix(in srgb, var(--good) 32%, var(--line)); }
+  .lucro-caixa.ruim { border-color: color-mix(in srgb, var(--crit) 38%, var(--line)); }
+  .lucro-caixa.cedo .s { margin-top: 2px; }
+
+  .torres-leg { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 10px; font-size: 11.5px; color: var(--muted); }
+  .torres-leg span { display: flex; align-items: center; gap: 6px; }
+  .torres-leg i { width: 9px; height: 9px; border-radius: 3px; }
+  .torres-pe {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line);
+    border-top: 1px solid var(--line); margin-top: 12px;
+  }
+  .torres-pe > div { background: var(--card); padding: 10px 6px; text-align: center; }
+  .torres-pe span { display: block; font-size: 11px; color: var(--muted); }
+  .torres-pe b { font-size: 15px; font-weight: 600; }
+
   .hbar-row { display: grid; grid-template-columns: minmax(110px, 160px) 1fr auto; gap: 12px; align-items: center; padding: 7px 0; }
   /* Entrada é petróleo, saída é terracota. A mesma dupla do resto do
      sistema, pra ninguém precisar ler o título pra saber de que lado é. */
@@ -2107,6 +2133,49 @@ function toast(msg) {
    obra está dando prejuízo antes do fim dela. */
 /* Percentual do jeito daqui: 27,1% e não 27.1%. */
 function pctBR(n) { return String(Math.round(Number(n) * 10) / 10).replace('.', ','); }
+/* ===================================================================
+   O LUCRO
+   Numa obra o lucro só é FATO quando ela acaba: contrato menos tudo que
+   foi gasto. Antes disso é projeção, e a projeção mais honesta que
+   existe sem adivinhação é a regra de três do custo: se gastou 103 mil
+   pra fazer 53%, a obra inteira deve custar 195 mil.
+
+   Ela tem um limite que precisa ser respeitado: no começo da obra ela
+   mente. Com 5% feito e uma nota lançada, a conta dá margem de 90%, o
+   que é fantasia. Por isso só projeta a partir de 20% construído e com
+   custo lançado de verdade; antes disso ela diz que é cedo, em vez de
+   inventar um número bonito que o Jorge levaria pra reunião.
+   =================================================================== */
+function lucroObra(o) {
+  const contrato = Number(o.contrato) || 0;
+  const custo = custoObra(o.id);
+  const feito = Number(o.progresso) || 0;
+
+  if (o.status === 'concluída' || o.status === 'pós-obra') {
+    return { tipo: 'realizado', valor: contrato - custo, custo,
+      margem: contrato > 0 ? Math.round(100 * (contrato - custo) / contrato) : 0 };
+  }
+  if (!contrato) return { tipo: 'sem-contrato' };
+  if (feito < 20 || custo <= 0) return { tipo: 'cedo', feito };
+
+  const custoProjetado = Math.round(custo / (feito / 100));
+  const valor = contrato - custoProjetado;
+  return { tipo: 'projetado', valor, custo, custoProjetado,
+    margem: Math.round(100 * valor / contrato) };
+}
+
+/* O lucro da empresa: o que já é fato, e o que está a caminho */
+function lucroGeral() {
+  let realizado = 0, projetado = 0, emProjecao = 0, cedo = 0;
+  state.obras.forEach(o => {
+    const l = lucroObra(o);
+    if (l.tipo === 'realizado') realizado += l.valor;
+    else if (l.tipo === 'projetado') { projetado += l.valor; emProjecao += 1; }
+    else if (l.tipo === 'cedo') cedo += 1;
+  });
+  return { realizado, projetado, emProjecao, cedo };
+}
+
 function saudeObra(o) {
   const custo = custoObra(o.id);
   const gasto = o.contrato > 0 ? Math.round(100 * custo / o.contrato) : 0;
@@ -5048,6 +5117,13 @@ function alertas() {
 }
 
 /* ================= Gráfico: entradas x saídas ================= */
+/* Os últimos N meses terminando no mês que está sendo olhado */
+function mesesAtras(n, ate) {
+  const fim = ate || 0;
+  const lista = [];
+  for (let i = n - 1; i >= 0; i--) lista.push(mesKey(fim - i));
+  return lista;
+}
 function meses3(desloc) {
   const b = desloc || 0;
   return [mesKey(b - 2), mesKey(b - 1), mesKey(b)].map(k => ({ key: k, rot: nomeMes(k) }));
@@ -5086,6 +5162,81 @@ function svgFluxo(desloc) {
     '<div class="legend"><span><i style="background:var(--chart-1)"></i>Entradas</span>' +
     '<span><i style="background:var(--chart-2)"></i>Saídas</span></div>' + tabela;
 }
+/* ===================================================================
+   AS TORRES DO FINANCEIRO
+   Três colunas por mês: o que entrou, o que saiu e o que sobrou. O
+   líquido fica do lado das outras duas, na mesma régua, então dá pra
+   ver de uma vez se o mês fechou no azul e de quanto foi a diferença.
+   Quando o mês fecha no vermelho a coluna do líquido desce da linha,
+   que é a leitura mais honesta possível de prejuízo.
+   =================================================================== */
+function svgTorres(chaves, escopo) {
+  const dados = chaves.map(k => {
+    const doMes = state.lancamentos.filter(l => String(l.data).startsWith(k) && (!escopo || escopo(l)));
+    const ent = doMes.filter(l => l.tipo === 'entrada').reduce((a, l) => a + l.valor, 0);
+    const sai = doMes.filter(l => l.tipo === 'saída').reduce((a, l) => a + l.valor, 0);
+    return { rot: nomeMes(k).slice(0, 3), key: k, ent, sai, liq: ent - sai };
+  });
+
+  const W = 600, H = 240, padL = 6, padR = 6, padB = 30, padT = 24;
+  const teto = Math.max(...dados.map(d => Math.max(d.ent, d.sai, Math.abs(d.liq))), 1);
+  const nice = Math.ceil(teto / 5000) * 5000 || 5000;
+  const temNegativo = dados.some(d => d.liq < 0);
+  /* Sobrando espaço embaixo da linha só quando existe mês no vermelho */
+  const alturaUtil = H - padT - padB;
+  const zeroY = padT + (temNegativo ? alturaUtil * 0.72 : alturaUtil);
+  const escala = v => (Math.abs(v) / nice) * (temNegativo ? alturaUtil * 0.72 : alturaUtil);
+
+  const grupoW = (W - padL - padR) / dados.length;
+  const barW = Math.min(26, (grupoW - 16) / 3);
+  const gap = 4;
+
+  let g = '';
+  /* Régua de fundo */
+  [0, 0.5, 1].forEach(f => {
+    const v = nice * f, yy = zeroY - escala(v);
+    g += '<line class="grid-l" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + yy + '" y2="' + yy + '"></line>';
+    if (f > 0) g += '<text class="axis-t" x="' + padL + '" y="' + (yy - 4) + '">' + Math.round(v / 1000) + ' mil</text>';
+  });
+  if (temNegativo) g += '<line class="grid-l" x1="' + padL + '" x2="' + (W - padR) + '" y1="' + zeroY + '" y2="' + zeroY + '" style="stroke-width:1.5"></line>';
+
+  dados.forEach((d, i) => {
+    const cx = padL + grupoW * i + grupoW / 2;
+    const x0 = cx - (barW * 3 + gap * 2) / 2;
+    const trio = [
+      { v: d.ent, cor: 'var(--chart-2)', rot: 'Entrou' },
+      { v: d.sai, cor: 'var(--chart-1)', rot: 'Saiu' },
+      { v: d.liq, cor: d.liq >= 0 ? 'var(--good)' : 'var(--crit)', rot: 'Sobrou' }
+    ];
+    trio.forEach((b, j) => {
+      const x = x0 + j * (barW + gap);
+      const h = escala(b.v);
+      const yTop = b.v >= 0 ? zeroY - h : zeroY;
+      g += barraTopo(x, yTop, barW, Math.max(h, 2), b.cor,
+        nomeMes(d.key) + ' · ' + b.rot + ': ' + moeda(b.v));
+    });
+    g += '<text class="axis-t" text-anchor="middle" x="' + cx + '" y="' + (H - 10) + '">' + esc(d.rot) + '</text>';
+  });
+
+  const legenda = '<div class="torres-leg">' +
+    '<span><i style="background:var(--chart-2)"></i>Entrou</span>' +
+    '<span><i style="background:var(--chart-1)"></i>Saiu</span>' +
+    '<span><i style="background:var(--good)"></i>Sobrou</span>' +
+  '</div>';
+
+  const ult = dados[dados.length - 1] || { ent: 0, sai: 0, liq: 0 };
+  const rodape = '<div class="torres-pe">' +
+    '<div><span>Entrou</span><b class="money in">' + moeda(dados.reduce((a, d) => a + d.ent, 0)) + '</b></div>' +
+    '<div><span>Saiu</span><b class="money out">' + moeda(dados.reduce((a, d) => a + d.sai, 0)) + '</b></div>' +
+    '<div><span>Líquido</span><b class="money ' + (dados.reduce((a, d) => a + d.liq, 0) >= 0 ? 'in' : 'out') + '">' +
+      moeda(dados.reduce((a, d) => a + d.liq, 0)) + '</b></div>' +
+  '</div>';
+
+  return legenda +
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Entrou, saiu e sobrou por mês" style="width:100%;height:auto;display:block">' +
+      g + '</svg>' + rodape;
+}
+
 function barraTopo(x, yTop, w, h, cor, tip) {
   if (h <= 0) h = 2;
   const r = Math.min(4, h);
@@ -5236,6 +5387,22 @@ function telaPainel() {
 
     ${barraPeriodo()}
     <div class="tiles">
+      ${(() => {
+        /* O número que ele abre o app pra ver. Fato e projeção lado a
+           lado, sem misturar: um já aconteceu, o outro é caminho. */
+        const lg = lucroGeral();
+        const total = lg.realizado + lg.projetado;
+        const sub = [
+          lg.realizado ? moeda(lg.realizado) + ' já fechado' : '',
+          lg.emProjecao ? moeda(lg.projetado) + ' a caminho, ' + lg.emProjecao + ' obra' + (lg.emProjecao === 1 ? '' : 's') : '',
+          lg.cedo && !lg.emProjecao ? lg.cedo + ' obra' + (lg.cedo === 1 ? '' : 's') + ' cedo demais pra dizer' : ''
+        ].filter(Boolean).join(' · ');
+        return `<button class="tile ${total >= 0 ? 't-good' : 't-crit'} clicavel" data-aba="obras" title="Ver as obras">
+          <div class="k">Lucro</div>
+          <div class="v">${moeda(total)}</div>
+          <div class="s">${sub || 'sem contrato lançado ainda'}</div>
+        </button>`;
+      })()}
       <button class="tile t-accent clicavel" data-fase-ir="execucao" title="Ver as obras em execução"><div class="k">Em execução</div><div class="v">${emExecucao.length}</div><div class="s">${moeda(contratado)} contratados</div></button>
       <button class="tile t-petrol clicavel" id="ir-extrato" title="Ver o extrato"><div class="k">A receber</div><div class="v">${moeda(aReceber)}</div><div class="s">falta entrar dos contratos</div></button>
       <button class="tile ${pend.length ? 't-crit' : 't-good'} clicavel" data-aba="pagamentos" title="Ver a folha"><div class="k">A pagar na folha</div><div class="v">${moeda(aPagar)}</div><div class="s">${pend.length} pendente${pend.length === 1 ? '' : 's'}</div></button>
@@ -5490,6 +5657,27 @@ function telaObraDetalhe(id) {
           <div class="kv" style="margin-top:12px"><span><b>${s.gasto}%</b> do contrato de <b>${moeda(o.contrato)}</b> já foi consumido em custos</span></div>
         </div>
       </div>
+
+      ${(() => {
+        const l = lucroObra(o);
+        if (l.tipo === 'sem-contrato') {
+          return '<div class="lucro-caixa cedo"><span class="k">Lucro</span>' +
+            '<span class="s">Sem o valor do contrato eu não tenho como calcular. Edite a obra e coloque quanto foi fechado.</span></div>';
+        }
+        if (l.tipo === 'cedo') {
+          return '<div class="lucro-caixa cedo"><span class="k">Lucro</span>' +
+            '<span class="s">Com ' + pctBR(l.feito) + '% construída e pouco custo lançado, qualquer conta aqui seria chute. A partir de 20% eu projeto.</span></div>';
+        }
+        const bom = l.valor >= 0;
+        return '<div class="lucro-caixa ' + (bom ? 'bom' : 'ruim') + '">' +
+          '<span class="k">' + (l.tipo === 'realizado' ? 'Lucro da obra' : 'Lucro projetado') + '</span>' +
+          '<span class="v money ' + (bom ? 'in' : 'out') + '">' + moeda(l.valor) + '</span>' +
+          '<span class="m">' + l.margem + '% do contrato</span>' +
+          '<span class="s">' + (l.tipo === 'realizado'
+            ? 'Obra fechada: ' + moeda(o.contrato) + ' de contrato menos ' + moeda(l.custo) + ' de custo.'
+            : 'Gastou ' + moeda(l.custo) + ' pra fazer ' + pctBR(o.progresso) + '%. Nesse ritmo a obra inteira custa ' + moeda(l.custoProjetado) + '.') +
+          '</span></div>';
+      })()}
 
       <div class="veredito ${s.nivel}">${vereditoTxt(s)}</div>
 
@@ -5985,6 +6173,11 @@ function telaFinanceiro() {
     <div class="grid-2" id="fin-graf" style="margin-top:14px">
       ${quadro('Entradas', ent, catsEnt, 'ent', 'Nada entrou.')}
       ${quadro('Saídas', sai, cats, 'sai', 'Nada saiu.')}
+    </div>
+
+    <div class="eyebrow">Mês a mês</div>
+    <div class="card chart-card">
+      ${svgTorres(mesesAtras(finTodos ? 12 : 6, finTodos ? 0 : mesFinDesloc), noEscopo)}
     </div>
 
     <div class="eyebrow">Movimentações</div>
