@@ -257,7 +257,11 @@
   .selo.receber { background: var(--good-soft); color: var(--good); }
   .selo.pagar { background: var(--warn-soft); color: var(--warn); }
   .selo.atrasado { background: var(--crit-soft); color: var(--crit); }
-  .selo.obra { background: var(--card-2); color: var(--ink-2); border: 1px solid var(--line); }
+  .selo.obra {
+    background: var(--card-2); color: var(--ink-2); border: 1px solid var(--line);
+    font: inherit; font-size: 10.5px; font-weight: 600; cursor: pointer;
+  }
+  .selo.obra:hover { border-color: var(--muted); color: var(--ink); }
   .ext-dir { flex: none; text-align: right; }
   .ext-dir .money { font-size: 14px; font-weight: 600; }
   .ext-linha.vencida .ext-txt b { color: var(--crit); }
@@ -7061,7 +7065,8 @@ function renderExtrato() {
             '<span class="selo ' + (c.tipo === 'receber' ? 'receber' : 'pagar') + '">' +
               (c.tipo === 'receber' ? 'a receber' : 'a pagar') + '</span>' +
             (vencida ? '<span class="selo atrasado">atrasado · venceu ' + dataBR(c.venc).slice(0, 5) + '</span>' : '') +
-            (o ? '<span class="selo obra">' + pontoObra(o) + esc(o.nome) + '</span>' : '') +
+            (o ? '<button class="selo obra" data-ir-obra="' + o.id + '" title="Abrir ' + esc(o.nome) + '">' +
+              pontoObra(o) + esc(o.nome) + '</button>' : '') +
           '</span>' +
         '</span>' +
         '<span class="ext-dir">' +
@@ -7098,6 +7103,10 @@ function renderExtrato() {
 function ligarEventosExtrato() {
   document.querySelectorAll('[data-chip]').forEach(b =>
     b.addEventListener('click', () => { filtroExtrato = b.dataset.chip; renderExtrato(); }));
+
+  /* O selo da obra é atalho: dali ele entra direto na obra */
+  document.querySelectorAll('#extrato-painel [data-ir-obra]').forEach(b =>
+    b.addEventListener('click', () => irParaObra(b.dataset.irObra)));
   const btnRec = document.getElementById('btn-recorte');
   if (btnRec) btnRec.addEventListener('click', () => { verTudoExtrato = !verTudoExtrato; renderExtrato(); });
   document.querySelectorAll('#extrato-painel [data-ord]').forEach(sel =>
@@ -7113,6 +7122,15 @@ function ligarEventosExtrato() {
 
   const verFolha = document.querySelector('[data-ver-folha]');
   if (verFolha) verFolha.addEventListener('click', () => { fecharExtrato(); mesPag = 0; irPara('pagamentos'); });
+}
+
+/* Do extrato direto pra dentro da obra. Fecha a gaveta antes, senão
+   ele volta pro painel com a gaveta aberta por cima do que quer ver. */
+function irParaObra(id) {
+  if (!obra(id)) return;
+  fecharExtrato();
+  obraAberta = id;
+  irPara('obras');
 }
 
 function abrirExtrato() {
