@@ -342,6 +342,13 @@
      =================================================================== */
   /* A frase do dia no padrão da casa: faixa bege sem moldura, texto em
      itálico, do jeito do "frase-chip" dos outros sistemas. */
+  /* O carimbo da versão, no pé do Início. Discreto de propósito: só
+     interessa no dia em que a tela parecer velha. */
+  .carimbo {
+    text-align: center; font-size: 11px; color: var(--muted);
+    margin: 22px 0 4px; letter-spacing: .02em;
+  }
+
   .versiculo {
     display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;
     background: var(--warn-soft); border: none; border-radius: 12px;
@@ -5011,6 +5018,12 @@ let abaAtual = 'painel';
 let obraAberta = null;
 let filtroFin = 'todos';
 let filtroFinObra = 'todas';
+/* O carimbo da publicação. Quem publica reescreve esta linha, e o
+   número aparece no pé do Início. Serve pra uma coisa só: quando a tela
+   parecer velha, dá pra saber na hora se é o navegador guardando cópia
+   antiga ou se a mudança não subiu mesmo. */
+const VERSAO = 'de 20/08/2026 às 17:46';
+
 /* Um período só, valendo no Início, no Financeiro e na Folha. Antes cada
    tela tinha o navegador de mês dela, e trocar de aba jogava o Jorge de
    volta pro mês atual sem ele ter pedido. */
@@ -5539,7 +5552,9 @@ function telaPainel() {
             <span class="hbar-val money">${moeda(x.c)}</span>
           </div>`).join('') : '<div class="empty">Nenhuma saída lançada ainda.</div>'}
       </div>
-    </div>`;
+    </div>
+
+    <p class="carimbo">Sistema ${esc(VERSAO)}</p>`;
 }
 
 function vereditoTxt(s) {
