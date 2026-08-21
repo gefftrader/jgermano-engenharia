@@ -342,6 +342,19 @@
      =================================================================== */
   /* A frase do dia no padrão da casa: faixa bege sem moldura, texto em
      itálico, do jeito do "frase-chip" dos outros sistemas. */
+  /* Aviso de versão nova. Fica acima do rodapé de navegação pra não
+     cobrir os botões no celular. */
+  .aviso-versao {
+    position: fixed; left: 50%; transform: translateX(-50%);
+    bottom: calc(var(--nav-h) + 12px); z-index: 60;
+    display: flex; align-items: center; gap: 12px;
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 999px; padding: 8px 8px 8px 18px;
+    box-shadow: 0 6px 22px rgba(43,36,32,.16);
+    font-size: 13.5px; color: var(--ink); max-width: calc(100vw - 32px);
+  }
+  @media (min-width: 900px) { .aviso-versao { bottom: 18px; } }
+
   /* O carimbo da versão, no pé do Início. Discreto de propósito: só
      interessa no dia em que a tela parecer velha. */
   .carimbo {
@@ -1889,6 +1902,51 @@ function salvar() {
   catch (e) { if (storageOk) { storageOk = false; avisoStorage(); } }
 }
 function uid() { state.seq += 1; return 'x' + state.seq; }
+
+/* ------------------------------------------------------------------
+   A PÁGINA CONFERE A SI MESMA
+   O GitHub Pages manda o navegador guardar esta página por dez minutos,
+   e o navegador guarda por mais tempo ainda. O Jorge abria, via a versão
+   de ontem e concluía, com razão, que nada tinha mudado.
+
+   Aqui a página pergunta ao servidor qual versão ele tem. Se for outra,
+   ela avisa e recarrega de um toque. Não dá pra mudar o cabeçalho do
+   GitHub, mas dá pra não deixar o Jorge na mão por causa dele.
+   ------------------------------------------------------------------ */
+function avisarVersaoNova(nova) {
+  if (!document.body || document.getElementById('aviso-versao')) return;
+  const el = document.createElement('div');
+  el.id = 'aviso-versao';
+  el.className = 'aviso-versao';
+  el.innerHTML = '<span>Tem uma versão mais nova do sistema.</span>' +
+    '<button class="btn small primary" id="btn-atualizar">Atualizar</button>';
+  document.body.appendChild(el);
+  document.getElementById('btn-atualizar').addEventListener('click', () => {
+    const u = new URL(location.href);
+    u.searchParams.set('v', String(Date.now()));
+    location.replace(u.toString());
+  });
+}
+(function () {
+  /* Fora do navegador isto não existe, e não pode existir: o servidor da
+     secretária roda este mesmo script com um DOM de mentira, e um
+     ReferenceError aqui derrubaria o atendimento no WhatsApp. */
+  if (typeof location === 'undefined' || typeof URL !== 'function' ||
+      typeof fetch !== 'function' || typeof setTimeout !== 'function') return;
+  if (location.protocol === 'file:') return;
+  setTimeout(() => {
+    const u = new URL(location.href);
+    u.searchParams.set('v', String(Date.now()));
+    fetch(u.toString(), { cache: 'reload' })
+      .then(r => (r.ok ? r.text() : null))
+      .then(t => {
+        if (!t) return;
+        const m = t.match(/const VERSAO = '([^']*)'/);
+        if (m && m[1] && m[1] !== VERSAO) avisarVersaoNova(m[1]);
+      })
+      .catch(() => {});
+  }, 1500);
+})();
 
 /* ------------------------------------------------------------------
    O QUE A SECRETÁRIA MEXEU PELO WHATSAPP
@@ -5020,7 +5078,7 @@ let filtroFinObra = 'todas';
    número aparece no pé do Início. Serve pra uma coisa só: quando a tela
    parecer velha, dá pra saber na hora se é o navegador guardando cópia
    antiga ou se a mudança não subiu mesmo. */
-const VERSAO = 'de 21/08/2026 às 09:27';
+const VERSAO = 'de 21/08/2026 às 11:02';
 
 /* Um período só, valendo no Início, no Financeiro e na Folha. Antes cada
    tela tinha o navegador de mês dela, e trocar de aba jogava o Jorge de
