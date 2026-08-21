@@ -345,15 +345,21 @@
   /* Aviso de versão nova. Fica acima do rodapé de navegação pra não
      cobrir os botões no celular. */
   .aviso-versao {
-    position: fixed; left: 50%; transform: translateX(-50%);
-    bottom: calc(var(--nav-h) + 12px); z-index: 60;
-    display: flex; align-items: center; gap: 12px;
+    position: fixed; left: 12px; right: 84px; z-index: 60;
+    bottom: calc(var(--nav-h) + 12px);
+    display: flex; align-items: center; gap: 10px;
     background: var(--card); border: 1px solid var(--line);
-    border-radius: 999px; padding: 8px 8px 8px 18px;
+    border-radius: 999px; padding: 7px 7px 7px 16px;
     box-shadow: 0 6px 22px rgba(43,36,32,.16);
-    font-size: 13.5px; color: var(--ink); max-width: calc(100vw - 32px);
+    font-size: 13px; color: var(--ink);
   }
-  @media (min-width: 900px) { .aviso-versao { bottom: 18px; } }
+  /* O texto encolhe, o botão nunca: 84px de folga à direita é o espaço
+     do botão redondo de novo cadastro, que não pode ficar coberto. */
+  .aviso-versao span { min-width: 0; flex: 1; }
+  .aviso-versao button { flex: none; }
+  @media (min-width: 900px) {
+    .aviso-versao { left: auto; right: 96px; bottom: 18px; max-width: 380px; }
+  }
 
   /* O carimbo da versão, no pé do Início. Discreto de propósito: só
      interessa no dia em que a tela parecer velha. */
@@ -1913,6 +1919,27 @@ function uid() { state.seq += 1; return 'x' + state.seq; }
    ela avisa e recarrega de um toque. Não dá pra mudar o cabeçalho do
    GitHub, mas dá pra não deixar o Jorge na mão por causa dele.
    ------------------------------------------------------------------ */
+/* Tira o carimbo de dentro do HTML baixado.
+   O padrão é montado em pedaços de propósito. Escrito por extenso, ele
+   apareceria no próprio arquivo, e a busca achava a linha do código
+   antes da linha da versão: capturava o padrão em vez da data, nunca
+   batia com a versão de agora, e a tarja de atualizar ficava na tela
+   pra sempre, mesmo recém atualizado. Além disso vale a ÚLTIMA
+   ocorrência, e só se ela tiver cara de carimbo de verdade. */
+function versaoNoTexto(txt) {
+  if (!txt) return null;
+  const marca = 'const VER' + 'SAO' + " = '";
+  let achado = null, i = txt.indexOf(marca);
+  while (i !== -1) {
+    const fim = txt.indexOf("'", i + marca.length);
+    if (fim === -1) break;
+    const v = txt.slice(i + marca.length, fim);
+    if (/^(de \d|em desenvolvimento)/.test(v)) achado = v;
+    i = txt.indexOf(marca, fim);
+  }
+  return achado;
+}
+
 function avisarVersaoNova(nova) {
   if (!document.body || document.getElementById('aviso-versao')) return;
   const el = document.createElement('div');
@@ -1939,11 +1966,7 @@ function avisarVersaoNova(nova) {
     u.searchParams.set('v', String(Date.now()));
     fetch(u.toString(), { cache: 'reload' })
       .then(r => (r.ok ? r.text() : null))
-      .then(t => {
-        if (!t) return;
-        const m = t.match(/const VERSAO = '([^']*)'/);
-        if (m && m[1] && m[1] !== VERSAO) avisarVersaoNova(m[1]);
-      })
+      .then(t => { const nova = versaoNoTexto(t); if (nova && nova !== VERSAO) avisarVersaoNova(nova); })
       .catch(() => {});
   }, 1500);
 })();
@@ -5078,7 +5101,7 @@ let filtroFinObra = 'todas';
    número aparece no pé do Início. Serve pra uma coisa só: quando a tela
    parecer velha, dá pra saber na hora se é o navegador guardando cópia
    antiga ou se a mudança não subiu mesmo. */
-const VERSAO = 'de 21/08/2026 às 11:02';
+const VERSAO = 'de 21/08/2026 às 12:08';
 
 /* Um período só, valendo no Início, no Financeiro e na Folha. Antes cada
    tela tinha o navegador de mês dela, e trocar de aba jogava o Jorge de
