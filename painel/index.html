@@ -454,20 +454,6 @@
   .marca-topo i { font-style: normal; font-size: 8.5px; font-weight: 700; letter-spacing: .22em; color: var(--muted); }
   .marca-topo:hover b { color: var(--accent); }
 
-  .nav-topo { display: flex; gap: 2px; align-items: center; margin-left: 6px; }
-  .nav-topo button {
-    position: relative; background: none; border: none; cursor: pointer;
-    padding: 7px 11px; border-radius: 9px; font: inherit; font-size: 13px;
-    font-weight: 600; color: var(--muted);
-  }
-  .nav-topo button:hover { background: var(--line-2); color: var(--ink); }
-  .nav-topo button.on { background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; }
-  .nav-topo .badge {
-    position: static; margin-left: 6px; display: inline-block; min-width: 16px;
-    padding: 0 4px; border-radius: 99px; background: var(--crit); color: #FFFFFF;
-    font-size: 10px; font-weight: 800; line-height: 16px; text-align: center;
-  }
-  @media (max-width: 1100px) { .nav-topo { display: none; } }
   @media (max-width: 620px) { .marca-topo span { display: none; } }
 
   /* Título de seção em caixa baixa, do jeito dos outros painéis: caixa
@@ -534,28 +520,6 @@
   .periodo-grupo { font-size: 12px; color: var(--muted); margin: 14px 0 2px; }
 
   /* Título de seção que também é botão de recolher */
-  /* Rodapé de Obras: a régua das seis fases e os números da operação */
-  .fase-resumo { margin-top: 22px; padding-top: 14px; border-top: 1px solid var(--line); }
-  .fase-fita { display: flex; gap: 6px; }
-  .fase-quadro {
-    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px;
-    background: var(--card); border: 1px solid var(--line-2); border-radius: 10px;
-    padding: 9px 4px; min-width: 0;
-  }
-  .fase-quadro b { font-size: 16px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; line-height: 1; }
-  .fase-quadro i {
-    font-style: normal; font-size: 9px; font-weight: 600; letter-spacing: .02em; color: var(--muted);
-    text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%;
-  }
-  .fase-quadro.tem { border-color: color-mix(in srgb, var(--fcor) 38%, var(--line)); background: color-mix(in srgb, var(--fcor) 6%, var(--card)); }
-  .fase-quadro.tem b { color: var(--fcor); }
-  .fase-quadro.tem i { color: var(--ink-2); }
-  .fase-mais {
-    display: flex; gap: 8px 20px; flex-wrap: wrap; margin-top: 12px;
-    font-size: 12px; color: var(--muted);
-  }
-  .fase-mais b { color: var(--ink); font-weight: 600; font-variant-numeric: tabular-nums; }
-  @media (max-width: 560px) { .fase-quadro i { display: none; } }
 
   .eyebrow-btn { width: 100%; background: none; border: none; cursor: pointer; text-align: left; font: inherit;
     font-size: 13px; font-weight: 600; color: var(--ink-2); padding: 0; }
@@ -1119,6 +1083,8 @@
   .fer-qtd .de { font-size: 12.5px; font-weight: 700; opacity: .62; }
   .fer-qtd.zero { background: var(--card-2); color: var(--muted); border: 1px dashed var(--line); }
   .fer-item.atencao .fer-qtd { background: var(--crit-soft); color: var(--crit); }
+  .fer-cabeca { display: flex; align-items: center; gap: 8px; padding-right: 14px; }
+  .fer-cabeca .fer-topo { width: auto; flex: 1; min-width: 0; padding-right: 6px; }
   .fer-nome { min-width: 0; flex: 1; font-size: 14.5px; }
   .fer-seta { flex: none; color: var(--muted); font-size: 16px; width: 20px; text-align: center; }
 
@@ -1402,7 +1368,6 @@
         </svg>
         <span><b>JGERMANO</b><i>ENGENHARIA</i></span>
       </button>
-      <nav class="nav-topo" id="nav-topo" aria-label="Seções"></nav>
       <h1 id="titulo-tela">Início</h1>
       <button class="icon-btn" id="btn-tema-topo" style="margin-left:auto;flex:none" title="Tema claro ou escuro" aria-label="Alternar tema claro e escuro"></button>
       <button class="extrato-btn" id="btn-extrato" style="margin-left:0" aria-haspopup="dialog" aria-expanded="false">
@@ -1924,6 +1889,34 @@ function salvar() {
   catch (e) { if (storageOk) { storageOk = false; avisoStorage(); } }
 }
 function uid() { state.seq += 1; return 'x' + state.seq; }
+
+/* ------------------------------------------------------------------
+   O QUE A SECRETÁRIA MEXEU PELO WHATSAPP
+   Quando o painel é servido pela VPS, o servidor avisa que o dado
+   mudou. Antes isso recarregava a página inteira, o que dava certo no
+   dado e errado no Jorge: se ele estivesse no meio de um cadastro, o
+   formulário sumia na cara dele.
+
+   Aqui a gente troca o estado e redesenha, mantendo onde ele está. Com
+   formulário aberto, a troca fica na fila e acontece quando ele fechar.
+   ------------------------------------------------------------------ */
+let deForaNaFila = null;
+function aplicarDeFora(txt) {
+  let novo;
+  try { novo = JSON.parse(txt); } catch (e) { return false; }
+  if (!novo || typeof novo !== 'object' || !Array.isArray(novo.obras)) return false;
+  const form = document.getElementById('modal-fundo');
+  if (form && !form.hidden) { deForaNaFila = txt; return false; }
+  deForaNaFila = null;
+  state = novo;
+  migrar();
+  render();
+  const ex = document.getElementById('extrato-fundo');
+  if (ex && !ex.hidden) renderExtrato();
+  return true;
+}
+/* Chamado quando o formulário fecha, pra soltar o que ficou esperando */
+function soltarDeFora() { if (deForaNaFila) aplicarDeFora(deForaNaFila); }
 
 /* ================= Tema ================= */
 const TEMA_KEY = 'crm-jgermano-tema';
@@ -4455,7 +4448,7 @@ function svgAnel(segmentos, centroValor, centroRot, tamanho) {
       ' stroke-dasharray="' + len.toFixed(2) + ' ' + (C - len).toFixed(2) + '"' +
       ' stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 80 80)"' +
       ' style="animation-delay:' + (i * 0.09).toFixed(2) + 's"' +
-      ' tabindex="0" data-tip="' + esc(x.rot + ': ' + moeda(x.v) + ' (' + Math.round(100 * x.v / total) + '%)') + '"' +
+      ' tabindex="0" title="' + esc(x.rot + ': ' + moeda(x.v) + ' (' + Math.round(100 * x.v / total) + '%)') + '"' +
       ' aria-label="' + esc(x.rot + ': ' + moeda(x.v)) + '"></circle>';
     off += bruto;
   });
@@ -4794,11 +4787,14 @@ const FORMS = {
 
 let formAtual = { nome:null, id:null };
 
-function abrirForm(nome, id) {
+/* `pre` são campos que já vêm preenchidos num cadastro novo. É o que
+   faz o "+ A receber" de dentro da obra abrir já com a obra escolhida,
+   em vez de obrigar o Jorge a achar de novo a obra em que ele está. */
+function abrirForm(nome, id, pre) {
   const F = FORMS[nome];
   if (!F) return;
   formAtual = { nome, id: id || null };
-  const dados = id ? (F.ler(id) || {}) : {};
+  const dados = id ? (F.ler(id) || {}) : Object.assign({}, pre || {});
 
   document.getElementById('modal-titulo').textContent = F.titulo(id);
 
@@ -4976,6 +4972,8 @@ function fecharForm() {
   document.getElementById('modal-fundo').hidden = true;
   document.getElementById('modal').hidden = true;
   formAtual = { nome:null, id:null };
+  /* Se a secretária mexeu enquanto ele preenchia, é agora que entra */
+  soltarDeFora();
 }
 
 function lerForm() {
@@ -5022,7 +5020,7 @@ let filtroFinObra = 'todas';
    número aparece no pé do Início. Serve pra uma coisa só: quando a tela
    parecer velha, dá pra saber na hora se é o navegador guardando cópia
    antiga ou se a mudança não subiu mesmo. */
-const VERSAO = 'de 20/08/2026 às 17:46';
+const VERSAO = 'de 21/08/2026 às 09:27';
 
 /* Um período só, valendo no Início, no Financeiro e na Folha. Antes cada
    tela tinha o navegador de mês dela, e trocar de aba jogava o Jorge de
@@ -5042,6 +5040,10 @@ let manutAberta = false;     // manutenção é um lugar, e recolhe também
 let grupoAberto = { orcamento:false, credito:false, inicio:false, execucao:false, final:false, pos:false, pausada:false, concluida:false };
 let buscaFer = '';           // busca por nome ou código no galpão
 let galpaoFoco = false;
+/* A busca fica guardada atrás da lupa. Uma caixa de texto larga e vazia
+   ocupava metade do cabeçalho o tempo todo pra uma coisa que o Jorge usa
+   quando some alguma coisa, não a cada visita. */
+let buscaAberta = false;
 
 function irPara(aba) {
   abaAtual = aba;
@@ -5074,15 +5076,10 @@ function renderNav() {
   ).join('');
   document.getElementById('rail-nav').innerHTML = railHTML;
 
-  /* A mesma navegação no alto, ao lado da marca. No computador ela
-     substitui o trilho da esquerda em telas largas, e no celular
-     desaparece em favor do rodapé. */
-  const topo = document.getElementById('nav-topo');
-  if (topo) topo.innerHTML = ABAS.map(a =>
-    '<button class="' + (a.id === abaAtual ? 'on' : '') + '" data-aba="' + a.id + '">' + esc(a.curto) +
-      (b[a.id] ? '<span class="badge">' + b[a.id] + '</span>' : '') +
-    '</button>'
-  ).join('');
+  /* No computador a navegação é o trilho da esquerda, e ponto. Existia
+     também uma fileira de abas no alto, e acima de 1100px as duas
+     apareciam ao mesmo tempo, dizendo a mesma coisa duas vezes e
+     empurrando o título da tela pro canto. */
 
   /* Sol quando está escuro, lua quando está claro: o desenho mostra
      pra onde o toque leva, não onde você está. */
@@ -5157,60 +5154,32 @@ function alertas() {
 
 /* ================= Gráfico: entradas x saídas ================= */
 /* Os últimos N meses terminando no mês que está sendo olhado */
-function mesesAtras(n, ate) {
-  const fim = ate || 0;
-  const lista = [];
-  for (let i = n - 1; i >= 0; i--) lista.push(mesKey(fim - i));
-  return lista;
-}
-/* Os meses que o período escolhido cobre. Mês solto traz os seis
-   últimos pra dar contexto; ano inteiro traz os doze (ou até o mês de
-   hoje, que mês que ainda não aconteceu não vira coluna vazia). */
-function mesesDoPeriodo() {
-  if (periodo.tipo !== 'ano') return mesesAtras(6, periodo.desloc);
-  const hoje = new Date(), ano = hoje.getFullYear() + periodo.desloc;
+/* As colunas do gráfico. Só o ano e o todo-o-tempo desenham colunas:
+   com um mês escolhido a tela mostra aquele mês e mais nada, senão o
+   seletor diz uma coisa e o gráfico diz outra.
+   No ano, os meses até hoje quando o ano é o corrente, que mês que ainda
+   não aconteceu não vira coluna vazia. No todo o tempo, do primeiro
+   lançamento até agora, limitado aos 24 últimos pra coluna não virar
+   risco fino demais pra enxergar. */
+function mesesDoGrafico() {
+  const hoje = new Date();
+  if (periodo.tipo === 'tudo') {
+    const datas = state.lancamentos.map(l => String(l.data).slice(0, 7)).filter(Boolean).sort();
+    if (!datas.length) return [mesKey(0)];
+    const lista = [];
+    let [a, m] = datas[0].split('-').map(Number);
+    const fimA = hoje.getFullYear(), fimM = hoje.getMonth() + 1;
+    while (a < fimA || (a === fimA && m <= fimM)) {
+      lista.push(a + '-' + String(m).padStart(2, '0'));
+      if (++m > 12) { m = 1; a++; }
+    }
+    return lista.slice(-24);
+  }
+  const ano = hoje.getFullYear() + periodo.desloc;
   const ate = periodo.desloc === 0 ? hoje.getMonth() + 1 : 12;
   const lista = [];
   for (let m = 1; m <= ate; m++) lista.push(ano + '-' + String(m).padStart(2, '0'));
   return lista;
-}
-function meses3(desloc) {
-  const b = desloc || 0;
-  return [mesKey(b - 2), mesKey(b - 1), mesKey(b)].map(k => ({ key: k, rot: nomeMes(k) }));
-}
-function svgFluxo(desloc) {
-  const dados = meses3(desloc).map(m => ({ rot: m.rot, ent: somaMes(m.key, 'entrada'), sai: somaMes(m.key, 'saída') }));
-  const W = 560, H = 230, padL = 8, padB = 26, padT = 26;
-  const max = Math.max(...dados.map(d => Math.max(d.ent, d.sai)), 1);
-  const nice = Math.ceil(max / 10000) * 10000;
-  const y = v => padT + (H - padT - padB) * (1 - v / nice);
-  const grupoW = (W - padL) / dados.length;
-  const barW = 44, gap = 2;
-  let s = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Entradas e saídas por mês" style="width:100%;height:auto;display:block">';
-  for (let i = 0; i <= 2; i++) {
-    const v = nice * i / 2;
-    s += '<line class="grid-l" x1="' + padL + '" x2="' + W + '" y1="' + y(v) + '" y2="' + y(v) + '"></line>';
-    if (i > 0) s += '<text class="axis-t" x="' + padL + '" y="' + (y(v) - 4) + '">' + Math.round(v / 1000) + ' mil</text>';
-  }
-  dados.forEach((d, i) => {
-    const cx = padL + grupoW * i + grupoW / 2;
-    const x1 = cx - barW - gap / 2, x2 = cx + gap / 2;
-    s += barraTopo(x1, y(d.ent), barW, H - padB - y(d.ent), 'var(--chart-1)', d.rot + ' · Entradas: ' + moeda(d.ent));
-    s += barraTopo(x2, y(d.sai), barW, H - padB - y(d.sai), 'var(--chart-2)', d.rot + ' · Saídas: ' + moeda(d.sai));
-    if (i === dados.length - 1) {
-      s += '<text class="val-t" text-anchor="middle" x="' + (x1 + barW / 2) + '" y="' + (y(d.ent) - 6) + '">' + Math.round(d.ent / 1000) + ' mil</text>';
-      s += '<text class="val-t" text-anchor="middle" x="' + (x2 + barW / 2) + '" y="' + (y(d.sai) - 6) + '">' + Math.round(d.sai / 1000) + ' mil</text>';
-    }
-    s += '<text class="axis-t" text-anchor="middle" x="' + cx + '" y="' + (H - 8) + '">' + d.rot + '</text>';
-  });
-  s += '</svg>';
-  const tabela = '<details class="tabela"><summary>Ver como tabela</summary><div class="tablewrap"><table>' +
-    '<tr><th>Mês</th><th class="num">Entradas</th><th class="num">Saídas</th><th class="num">Saldo</th></tr>' +
-    dados.map(d => '<tr><td>' + d.rot + '</td><td class="num">' + moeda(d.ent) + '</td><td class="num">' + moeda(d.sai) + '</td><td class="num">' + moeda(d.ent - d.sai) + '</td></tr>').join('') +
-    '</table></div></details>';
-  return s +
-    '<div class="legend"><span><i style="background:var(--chart-1)"></i>Entradas</span>' +
-    '<span><i style="background:var(--chart-2)"></i>Saídas</span></div>' + tabela;
 }
 /* ===================================================================
    AS TORRES DO FINANCEIRO
@@ -5286,7 +5255,8 @@ function svgTorres(chaves, escopo, somar) {
                    { ent: 0, sai: 0, liq: 0, key: ult.key })
     : ult;
   const nota = !ult.key ? ''
-    : somar ? 'Ano de ' + ult.key.split('-')[0] + ', somado. Cada coluna é um mês.'
+    : somar ? (periodo.tipo === 'tudo' ? 'Todo o período, somado. Cada coluna é um mês.'
+                                        : 'Ano de ' + ult.key.split('-')[0] + ', somado. Cada coluna é um mês.')
             : nomeMes(ult.key) + ' de ' + ult.key.split('-')[0] + '. Nas colunas, os ' + dados.length + ' meses anteriores.';
   const rodape = '<div class="torres-pe">' +
     '<div><span>Entrou</span><b class="money in">' + moeda(pe.ent) + '</b></div>' +
@@ -5309,7 +5279,7 @@ function barraTopo(x, yTop, w, h, cor, tip) {
     ' L' + (x + w - r) + ' ' + yTop +
     ' Q' + (x + w) + ' ' + yTop + ' ' + (x + w) + ' ' + (yTop + r) +
     ' L' + (x + w) + ' ' + (yTop + h) + ' Z';
-  return '<path class="barmark" d="' + d + '" fill="' + cor + '" tabindex="0" data-tip="' + esc(tip) + '" aria-label="' + esc(tip) + '"></path>';
+  return '<path class="barmark" d="' + d + '" fill="' + cor + '" tabindex="0" title="' + esc(tip) + '" aria-label="' + esc(tip) + '"></path>';
 }
 
 /* ================= Painel ================= */
@@ -5341,6 +5311,11 @@ function abrirPeriodo() {
       '<span>Ano de ' + (ano + i) + '</span>' +
       '<span>' + (marcado ? '&#10003;' : '&rsaquo;') + '</span></div>';
   });
+  /* Desde o primeiro lançamento até hoje, sem recorte nenhum */
+  const tudoOn = periodo.tipo === 'tudo';
+  h += '<div class="periodo-op' + (tudoOn ? ' on' : '') + '" data-per="tudo|0">' +
+    '<span>Todo o período</span>' +
+    '<span>' + (tudoOn ? '&#10003;' : '&rsaquo;') + '</span></div>';
   lista.innerHTML = h;
   lista.querySelectorAll('[data-per]').forEach(b => b.addEventListener('click', () => {
     const [tipo, d] = b.dataset.per.split('|');
@@ -5384,21 +5359,24 @@ function cartaoSecretaria() {
    inteiro. É a mesma peça dos outros painéis da casa.
    ------------------------------------------------------------------ */
 function rotuloPeriodo() {
+  if (periodo.tipo === 'tudo') return 'Todo o período';
   if (periodo.tipo === 'ano') return 'Ano de ' + (new Date().getFullYear() + periodo.desloc);
   const mk = mesKey(periodo.desloc);
   return nomeMes(mk) + ' ' + mk.split('-')[0];
 }
 function barraPeriodo() {
   return '<div class="periodo-barra">' +
-    '<button class="periodo-nav" id="per-ant" aria-label="Anterior">&lsaquo;</button>' +
+    '<button class="periodo-nav" id="per-ant" aria-label="Anterior"' +
+      (periodo.tipo === 'tudo' ? ' disabled' : '') + '>&lsaquo;</button>' +
     '<button class="periodo-atual" id="per-abre">' + esc(rotuloPeriodo()) +
       '<span class="periodo-seta">&#9660;</span></button>' +
     '<button class="periodo-nav" id="per-prox" aria-label="Seguinte"' +
-      (periodo.desloc >= 0 ? ' disabled' : '') + '>&rsaquo;</button>' +
+      (periodo.tipo === 'tudo' || periodo.desloc >= 0 ? ' disabled' : '') + '>&rsaquo;</button>' +
   '</div>';
 }
 /* Todo lançamento que cai no período escolhido */
 function noPeriodo(l) {
+  if (periodo.tipo === 'tudo') return true;
   if (periodo.tipo === 'ano') return String(l.data).startsWith(String(new Date().getFullYear() + periodo.desloc));
   return String(l.data).startsWith(mesKey(periodo.desloc));
 }
@@ -5538,21 +5516,30 @@ function telaPainel() {
       </div>
     </div>
 
-    <div class="grid-2" style="margin-top:12px">
-      <div class="card chart-card">
-        <h3>Entradas x saídas</h3>
-        ${svgTorres(mesesDoPeriodo(), null, periodo.tipo === 'ano')}
-      </div>
-      <div class="card chart-card">
-        <h3>Custo por obra</h3>
-        ${custos.length ? custos.map(x => `
-          <div class="hbar-row">
-            <span class="hbar-nome" title="${esc(x.o.nome)}">${nomeComCor(x.o)}</span>
-            <span class="hbar-track"><i style="width:${Math.round(100 * x.c / maxC)}%;background:${corObra(x.o)}"></i></span>
-            <span class="hbar-val money">${moeda(x.c)}</span>
-          </div>`).join('') : '<div class="empty">Nenhuma saída lançada ainda.</div>'}
-      </div>
-    </div>
+    ${(() => {
+      const custoPorObra = `
+        <div class="card chart-card">
+          <h3>Custo por obra</h3>
+          ${custos.length ? custos.map(x => `
+            <div class="hbar-row">
+              <span class="hbar-nome" title="${esc(x.o.nome)}">${nomeComCor(x.o)}</span>
+              <span class="hbar-track"><i style="width:${Math.round(100 * x.c / maxC)}%;background:${corObra(x.o)}"></i></span>
+              <span class="hbar-val money">${moeda(x.c)}</span>
+            </div>`).join('') : '<div class="empty">Nenhuma saída lançada ainda.</div>'}
+        </div>`;
+      /* Com um mês escolhido, os três anéis aí de cima já são o mês
+         inteiro: entrou, saiu e o líquido. Uma coluna só ao lado deles
+         repetiria os mesmos três números em outro desenho. O gráfico
+         mês a mês é a vista do ano, e é lá que ele aparece. */
+      if (periodo.tipo === 'mes') return '<div style="margin-top:12px">' + custoPorObra + '</div>';
+      return `<div class="grid-2" style="margin-top:12px">
+        <div class="card chart-card">
+          <h3>Entradas x saídas</h3>
+          ${svgTorres(mesesDoGrafico(), null, true)}
+        </div>
+        ${custoPorObra}
+      </div>`;
+    })()}
 
     <p class="carimbo">Sistema ${esc(VERSAO)}</p>`;
 }
@@ -5653,27 +5640,10 @@ function telaObras() {
         </div>
       </div>` : ''}`;
     }).join('')}
-
-    ${(() => {
-      /* Rodapé da tela: a régua inteira num relance, e do lado os números
-         que saíram do Início porque o lugar deles é aqui. */
-      const porFase = FASES.map((f, i) => ({ i, f, n: state.obras.filter(o => o.status === f).length }));
-      const fora = ['pausada', 'concluída'].map(f => ({ f, n: state.obras.filter(o => o.status === f).length }))
-        .filter(x => x.n > 0);
-      const equipeCampo = state.pessoas.filter(p => p.papel !== 'fornecedor' && p.obraId).length;
-      return `<div class="fase-resumo">
-        <div class="fase-fita">
-          ${porFase.map(x => `<span class="fase-quadro${x.n ? ' tem' : ''}" style="--fcor:${FASE_COR[x.f]}" title="${esc(x.f)}">
-            <b>${x.n}</b><i>${esc(FASE_CURTA[x.f])}</i></span>`).join('')}
-        </div>
-        <div class="fase-mais">
-          ${fora.map(x => '<span>' + x.n + ' ' + esc(x.f) + '</span>').join('')}
-          <span>Gente em obra <b>${equipeCampo}</b></span>
-          <span>Ferramenta fora <b>${qtdForaDoGalpao()}</b></span>
-          <span>Possíveis clientes <b>${state.leads.length}</b></span>
-        </div>
-      </div>`;
-    })()}`;
+`;
+  /* O rodapé com a fita das fases saiu daqui. Ele repetia, miúdo e
+     apertado, a mesma contagem que a lista logo acima já dá em tamanho
+     de leitura, e o botão de nova obra ainda cobria a última casinha. */
 }
 
 function telaObraDetalhe(id) {
@@ -6217,10 +6187,10 @@ function telaFinanceiro() {
       <div class="tile ${ent - sai >= 0 ? 't-petrol' : 't-crit'}"><div class="k">Líquido</div><div class="v ${ent - sai >= 0 ? 'pos' : 'neg'}" data-conta="${ent - sai}"${de('saldo')}>${moeda(ent - sai)}</div><div class="s">${escopoSub}</div></div>
     </div>
 
-    <div class="eyebrow" style="margin-top:16px">Mês a mês</div>
+    ${periodo.tipo !== 'mes' ? `<div class="eyebrow" style="margin-top:16px">Mês a mês</div>
     <div class="card chart-card">
-      ${svgTorres(mesesDoPeriodo(), noEscopo, periodo.tipo === 'ano')}
-    </div>
+      ${svgTorres(mesesDoGrafico(), noEscopo, true)}
+    </div>` : ''}
 
     <div class="eyebrow">Por categoria</div>
     ${quadroCategorias()}
@@ -6403,10 +6373,21 @@ function codChip(f) { return f.cod ? '<span class="cod">' + esc(f.cod) + '</span
    remanejo: cada lugar com quantidade vira uma linha de "manda daqui
    pra ali", que é como o Jorge pensa. */
 function linhaFerramenta(f, contexto) {
+  const onde = contexto || 'galpao';
   const total = totalFer(f);
-  const aqui = qtdEm(f, contexto || 'galpao');
-  const aberta = ferSel === f.id;
+  const aqui = qtdEm(f, onde);
+  /* A chave carrega o lugar junto com a ferramenta. A mesma escora é
+     desenhada no galpão, na manutenção e no card de cada obra que tem
+     uma: guardando só o id da ferramenta, tocar nela dentro do Maclean
+     abria o painel nos três lugares ao mesmo tempo. */
+  const aberta = ferSel === onde + '|' + f.id;
   const locais = locaisDe(f);
+  /* Dentro de uma obra só se mexe no que está naquela obra. De dentro do
+     canteiro do Maclean o Jorge devolve a escora do Maclean; a que está
+     com o Cícero na obra da Mirelly não é assunto dali, e oferecer o
+     botão fazia parecer que era. O galpão é a casa, e continua sendo o
+     lugar de onde se enxerga e se despacha tudo. */
+  const mexiveis = onde === 'galpao' ? locais : locais.filter(l => l === onde);
   const emManutF = qtdEm(f, 'manutencao') > 0;
   const destinos = [{ v:'galpao', r:'Galpão' }]
     .concat(state.obras.filter(emObra).map(o => ({ v:o.id, r:o.nome })))
@@ -6415,7 +6396,7 @@ function linhaFerramenta(f, contexto) {
   let painel = '';
   if (aberta) {
     painel = '<div class="remanejo">' +
-      (locais.length ? locais.map(l => {
+      (mexiveis.length ? mexiveis.map(l => {
         const n = qtdEm(f, l);
         const quem = f.resps && f.resps[l] ? ' · ' + esc(f.resps[l]) : '';
         return '<div class="rem-linha">' +
@@ -6428,12 +6409,15 @@ function linhaFerramenta(f, contexto) {
             '<button class="btn small primary" data-rem="' + f.id + '|' + l + '">Mover</button>' +
           '</span>' +
         '</div>';
-      }).join('') : '<div class="empty">Sem quantidade registrada em lugar nenhum.</div>') +
+      }).join('') : '<div class="empty">' + (onde === 'galpao'
+        ? 'Sem quantidade registrada em lugar nenhum.'
+        : 'Nenhuma aqui agora.') + '</div>') +
     '</div>';
   }
 
   return '<div class="fer-item' + (aberta ? ' aberta' : '') + (emManutF ? ' atencao' : '') + '">' +
-    '<button class="fer-topo" data-fer-sel="' + f.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' +
+    '<div class="fer-cabeca">' +
+    '<button class="fer-topo" data-fer-sel="' + onde + '|' + f.id + '" aria-expanded="' + (aberta ? 'true' : 'false') + '">' +
       /* "0/6" e "20/20": quantas estão aqui, de quantas existem. Num
          relance dá pra ver se falta alguma coisa no lugar. */
       '<span class="fer-qtd' + (aqui ? '' : ' zero') + '"><b>' + aqui + '</b><span class="de">/' + total + '</span></span>' +
@@ -6442,10 +6426,15 @@ function linhaFerramenta(f, contexto) {
         '<br><span class="obra-meta">' +
         (aqui === total
           ? (total === 1 ? 'a única, e está aqui' : 'todas as ' + total + ' estão aqui')
-          : locais.filter(l => l !== (contexto || 'galpao')).map(l => qtdEm(f, l) + ' em ' + nomeLoc(l)).join(', ')) +
+          : locais.filter(l => l !== onde).map(l => qtdEm(f, l) + ' em ' + nomeLoc(l)).join(', ')) +
         '</span></span>' +
       '<span class="fer-seta" aria-hidden="true">' + (aberta ? '&minus;' : '+') + '</span>' +
     '</button>' +
+    /* O lápis só no galpão: o nome, o código e quantas a empresa tem são
+       da ferramenta inteira, não do canteiro em que ela está hoje.
+       É por aqui que se corrige o nome, se compra mais e se dá baixa. */
+    (onde === 'galpao' ? btnEd('ferramenta', f.id, f.item) : '') +
+    '</div>' +
     painel +
   '</div>';
 }
@@ -6486,9 +6475,15 @@ function telaFerramentas() {
 
     <div class="eyebrow">Onde estão as ferramentas
       <span class="push busca-topo">
-        <input id="busca-fer" class="busca" placeholder="Procurar: martelete, escora, #2002..."
-          value="${esc(buscaFer)}" aria-label="Procurar ferramenta">
-        ${busca ? '<button class="btn small" id="limpa-busca">Limpar</button>' : selOrdem('fer')}
+        ${buscaAberta || busca
+          ? `<input id="busca-fer" class="busca" placeholder="martelete, escora, #2002..."
+               value="${esc(buscaFer)}" aria-label="Procurar ferramenta">
+             <button class="ed" id="limpa-busca" aria-label="Fechar a busca" title="Fechar">
+               <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+             </button>`
+          : `<button class="ed" id="abre-busca" aria-label="Procurar ferramenta" title="Procurar">
+               <svg width="15" height="15" viewBox="0 0 24 24" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M16.5 16.5L21 21"/></svg>
+             </button>${selOrdem('fer')}`}
       </span>
     </div>
     ${busca && !achadas.length ? '<div class="card empty">Nenhuma ferramenta com esse nome.</div>' : ''}
@@ -6690,6 +6685,30 @@ function ligarEventos() {
     range.addEventListener('change', () => executar('definirProgresso', obraAberta, range.value));
   }
 
+  /* ------------------------------------------------------------------
+     Três famílias de botão viviam sem ouvinte nenhum. O seletor que as
+     ligava só existia dentro do extrato, então no painel elas eram
+     desenho: clicar numa obra não abria a obra, o lápis não editava
+     nada e os doze botões de "+ Novo" não abriam formulário.
+     Aqui elas voltam, com o escopo em #app pra não brigar com as
+     cópias que o extrato liga por conta própria.
+     ------------------------------------------------------------------ */
+  document.querySelectorAll('#app [data-obra]').forEach(b =>
+    b.addEventListener('click', () => irParaObra(b.dataset.obra)));
+
+  document.querySelectorAll('#app [data-ed]').forEach(b =>
+    b.addEventListener('click', () => abrirForm(b.dataset.ed, b.dataset.edId)));
+
+  document.querySelectorAll('#app [data-novo]').forEach(b =>
+    b.addEventListener('click', () => {
+      /* O botão diz de onde veio, e o formulário abre já sabendo disso */
+      const d = b.dataset, pre = {};
+      if (d.obraPadrao)   { pre.obraId = d.obraPadrao; }
+      if (d.contaReceber) { pre.obraId = d.contaReceber; pre.tipo = 'entrada'; }
+      if (d.contaForn)    { pre.desc = d.contaForn; pre.tipo = 'saída'; }
+      abrirForm(d.novo, null, pre);
+    }));
+
   /* Quitar conta a receber direto da obra */
   document.querySelectorAll('#app [data-quitar]').forEach(b =>
     b.addEventListener('click', () => executar('quitarConta', b.dataset.quitar)));
@@ -6731,8 +6750,10 @@ function ligarEventos() {
     b.addEventListener('click', () => executar('converterLead', b.dataset.fechou)));
 
   /* Busca do galpão pela etiqueta */
+  const abreB = document.getElementById('abre-busca');
+  if (abreB) abreB.addEventListener('click', () => { buscaAberta = true; galpaoFoco = true; render(); });
   const limpaB = document.getElementById('limpa-busca');
-  if (limpaB) limpaB.addEventListener('click', () => { buscaFer = ''; render(); });
+  if (limpaB) limpaB.addEventListener('click', () => { buscaFer = ''; buscaAberta = false; render(); });
   const buscaEl = document.getElementById('busca-fer');
   if (buscaEl) {
     buscaEl.addEventListener('input', () => { buscaFer = buscaEl.value; galpaoFoco = true; render(); });
@@ -6877,9 +6898,9 @@ function ligarEventos() {
 
   /* Barra de período: as setas andam, o meio abre a lista */
   const pAnt = document.getElementById('per-ant');
-  if (pAnt) pAnt.addEventListener('click', () => { periodo.desloc -= 1; render(); });
+  if (pAnt) pAnt.addEventListener('click', () => { if (periodo.tipo !== 'tudo') { periodo.desloc -= 1; render(); } });
   const pProx = document.getElementById('per-prox');
-  if (pProx) pProx.addEventListener('click', () => { if (periodo.desloc < 0) { periodo.desloc += 1; render(); } });
+  if (pProx) pProx.addEventListener('click', () => { if (periodo.tipo !== 'tudo' && periodo.desloc < 0) { periodo.desloc += 1; render(); } });
   const pAbre = document.getElementById('per-abre');
   if (pAbre) pAbre.addEventListener('click', abrirPeriodo);
 
@@ -6911,8 +6932,11 @@ function ligarEventos() {
   /* Ferramentas: abrir a ferramenta pra remanejar */
   document.querySelectorAll('[data-fer-sel]').forEach(b =>
     b.addEventListener('click', () => {
-      const id = b.dataset.ferSel;
-      ferSel = ferSel === id ? null : id;
+      /* A chave é "lugar|ferramenta", e o id da ferramenta é o que vem
+         depois da primeira barra. */
+      const chave = b.dataset.ferSel;
+      const id = chave.slice(chave.indexOf('|') + 1);
+      ferSel = ferSel === chave ? null : chave;
       /* Ferramenta sem quantidade em lugar nenhum começa no galpão */
       const f = state.ferramentas.find(x => x.id === id);
       if (ferSel && f && !locaisDe(f).length) {
