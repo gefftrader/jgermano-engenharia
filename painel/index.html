@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel JGermano · endereço novo</title>
+<!--
+  Esta página substitui o painel que ficava aqui.
+
+  O painel do GitHub Pages é estático, sem servidor: ele guardava os dados no
+  localStorage do próprio navegador. Quer dizer que cada aparelho tinha um
+  livro só dele, e nenhum deles era o livro que a secretária do WhatsApp
+  escreve. Foi isso que fez o painel mostrar obras e valores enquanto a
+  secretária dizia que não tinha nada cadastrado.
+
+  O painel de verdade é servido pelo mesmo servidor da secretária, e por isso
+  precisa de chave. A chave NÃO entra aqui: esta página é pública.
+-->
+<style>
+  :root{
+    --papel:#F6F5F1; --card:#FFFFFF; --tinta:#22252A; --tinta-2:#6E7379;
+    --linha:#E5E2DB; --marca:#E8632A;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --papel:#191B1E; --card:#232629; --tinta:#F0EFEC; --tinta-2:#9BA1A6;
+      --linha:#31353A; --marca:#F2743C;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--papel); color:var(--tinta);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+    font-size:16px; line-height:1.55; letter-spacing:-.011em;
+    display:flex; align-items:center; justify-content:center; min-height:100dvh; padding:24px;
+  }
+  .caixa{
+    background:var(--card); border:1px solid var(--linha); border-radius:16px;
+    padding:28px 24px; max-width:440px; width:100%;
+    box-shadow:0 1px 3px rgba(0,0,0,.05);
+  }
+  .marca{display:flex; align-items:center; gap:10px; margin-bottom:20px}
+  .marca .j{
+    width:34px; height:34px; border-radius:9px; background:var(--marca);
+    color:#fff; font-weight:800; font-size:19px; display:grid; place-items:center;
+  }
+  .marca b{font-size:14px; letter-spacing:.04em; text-transform:uppercase}
+  .marca span{display:block; font-size:11px; color:var(--tinta-2); letter-spacing:.1em}
+  h1{font-size:20px; margin:0 0 10px; letter-spacing:-.02em}
+  p{margin:0 0 14px; color:var(--tinta-2)}
+  p.forte{color:var(--tinta)}
+  .aviso{
+    background:color-mix(in srgb, var(--marca) 10%, transparent);
+    border-left:3px solid var(--marca); border-radius:8px;
+    padding:12px 14px; font-size:14.5px; margin:0 0 18px;
+  }
+  code{
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:13.5px;
+    background:var(--papel); border:1px solid var(--linha);
+    border-radius:6px; padding:2px 6px; overflow-wrap:anywhere;
+  }
+  .pe{font-size:13px; color:var(--tinta-2); border-top:1px solid var(--linha); padding-top:14px; margin-top:4px}
+</style>
+</head>
+<body>
+  <div class="caixa">
+    <div class="marca">
+      <div class="j">J</div>
+      <div><b>JGermano</b><span>ENGENHARIA</span></div>
+    </div>
+
+    <h1>O painel mudou de endereço</h1>
+
+    <div class="aviso">
+      Esta página guardava os dados dentro do próprio navegador. Cada aparelho
+      ficava com um livro só dele, e nenhum era o livro que a secretária do
+      WhatsApp escreve.
+    </div>
+
+    <p class="forte">O painel novo fica no mesmo servidor da secretária. O que
+    ela registra aparece nele em segundos, e o que você lança nele ela enxerga
+    na mesma hora.</p>
+
+    <p>Ele abre com um link próprio, com chave. Peça o link ao Geff, ou gere no
+    terminal com <code>./scripts/link-painel.sh</code>. Salve na tela de início
+    do celular pra não precisar do link toda vez.</p>
+
+    <p class="pe">A chave não fica nesta página porque ela é pública. Se você
+    ainda vê números antigos em algum aparelho, é o livro velho guardado
+    naquele navegador, não o sistema.</p>
+  </div>
+</body>
+</html>
